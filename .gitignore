@@ -32,3 +32,9 @@ Thumbs.db
 
 # Temp test scripts
 _*.mjs
+
+# Preview/screenshot artifacts
+.playwright-mcp/
+/hero.png
+/full.png
+/mobile.png

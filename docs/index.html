@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-Ripper — rip audio straight into Ableton</title>
+<meta name="description" content="A Max for Live device that rips audio from SoundCloud, YouTube, Bandcamp and more, straight into an Ableton Live track. Free for personal use.">
+<meta property="og:title" content="K-Ripper">
+<meta property="og:description" content="Rip audio from a URL straight into an Ableton Live track.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d0d12'/%3E%3Cpath d='M12 9l12 7-12 7z' fill='%23e83a1f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas: #0d0d12;
+    --panel: #17171e;
+    --panel-2: #1d1d26;
+    --hair: #26262f;
+    --hair-bright: #34343f;
+    --text: #ececee;
+    --muted: #8a8a95;
+    --faint: #5c5c66;
+    --rip: #e83a1f;
+    --rip-dim: #b32d17;
+    --amber: #f2c14e;
+    --cyan: #4ec3e0;
+    --green: #6fcf97;
+    --display: "Space Grotesk", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--canvas);
+    color: var(--text);
+    font-family: var(--display);
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* subtle grid texture, like an empty Session view behind everything */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--hair) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.18;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  a { color: inherit; }
+
+  .mono { font-family: var(--mono); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--rip);
+    font-weight: 500;
+  }
+
+  /* ---------- top bar ---------- */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--canvas) 78%, transparent);
+    border-bottom: 1px solid var(--hair);
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 58px; }
+  .brand {
+    font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 9px; text-decoration: none;
+  }
+  .brand .tri {
+    width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 8px solid var(--rip);
+  }
+  .bar nav { display: flex; align-items: center; gap: 26px; }
+  .bar nav a {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .bar nav a:hover { color: var(--text); }
+  @media (max-width: 560px) { .bar nav a.nav-hide { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 76px 0 40px; text-align: center; }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(2.6rem, 7vw, 5.3rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin: 18px auto 0;
+    max-width: 14ch;
+  }
+  .hero h1 .cut { color: var(--rip); position: relative; white-space: nowrap; }
+  .hero p.lede {
+    color: var(--muted);
+    font-size: clamp(1rem, 2.2vw, 1.22rem);
+    max-width: 46ch; margin: 22px auto 0; line-height: 1.55;
+  }
+
+  /* ---------- the device (interactive) ---------- */
+  .device {
+    margin: 44px auto 0;
+    max-width: 560px;
+    background: linear-gradient(180deg, #14141b, #0f0f15);
+    border: 1px solid var(--hair-bright);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.03);
+    text-align: left;
+  }
+  .device-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .device-title { font-weight: 700; letter-spacing: 0.02em; font-size: 0.95rem; }
+  .device-state { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); transition: background 0.25s; }
+  .dot.work { background: var(--amber); }
+
+  .ripbar { display: flex; gap: 10px; }
+  .urlfield {
+    flex: 1; min-width: 0;
+    background: #0a0a0e;
+    border: 1px solid var(--hair);
+    border-radius: 7px;
+    padding: 0 13px;
+    height: 44px;
+    display: flex; align-items: center;
+    font-family: var(--mono); font-size: 0.82rem;
+    color: var(--muted);
+    overflow: hidden; white-space: nowrap;
+  }
+  .urlfield .caret { color: var(--rip); margin-left: 1px; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .ripbtn {
+    flex: 0 0 auto;
+    background: var(--rip); color: #fff;
+    border: 0; border-radius: 7px;
+    font-family: var(--display); font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    padding: 0 26px; height: 44px; cursor: pointer;
+    transition: background 0.15s, transform 0.08s;
+  }
+  .ripbtn:hover { background: #ff4422; }
+  .ripbtn:active { transform: translateY(1px); }
+  .ripbtn:disabled { background: var(--rip-dim); cursor: default; }
+
+  /* clip grid — the signature */
+  .grid-label {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--faint); margin: 18px 0 9px;
+    display: flex; justify-content: space-between;
+  }
+  .slots { display: flex; flex-direction: column; gap: 6px; }
+  .slot {
+    height: 40px; border-radius: 6px;
+    background: #0b0b0f; border: 1px solid var(--hair);
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 12px; position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .slot .launch {
+    width: 0; height: 0; flex: 0 0 auto;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 8px solid var(--faint);
+    transition: border-left-color 0.2s;
+  }
+  .slot .stop {
+    width: 9px; height: 9px; flex: 0 0 auto;
+    border: 1px solid var(--faint); border-radius: 1px; display: none;
+  }
+  .slot .clipname {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .slot .wave { margin-left: auto; display: flex; align-items: center; gap: 2px; height: 18px; opacity: 0; }
+  .slot .wave i { width: 2px; background: currentColor; border-radius: 1px; display: block; }
+
+  .slot.filled { background: color-mix(in srgb, var(--clip, var(--rip)) 16%, #0b0b0f); border-color: color-mix(in srgb, var(--clip, var(--rip)) 45%, var(--hair)); }
+  .slot.filled .launch { border-left-color: var(--clip, var(--rip)); }
+  .slot.filled .clipname { color: var(--text); }
+  .slot.filled .wave { opacity: 0.85; color: var(--clip, var(--rip)); }
+  .slot.ripping { animation: scan 0.9s ease; }
+  @keyframes scan {
+    0% { background: #0b0b0f; }
+    40% { background: color-mix(in srgb, var(--rip) 28%, #0b0b0f); border-color: var(--rip); }
+    100% { }
+  }
+
+  /* ---------- downloads ---------- */
+  .downloads { margin: 40px auto 0; max-width: 560px; }
+  .dl-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .dl {
+    flex: 1; min-width: 220px;
+    display: flex; align-items: center; gap: 14px;
+    background: var(--panel); border: 1px solid var(--hair);
+    border-radius: 10px; padding: 16px 18px;
+    text-decoration: none; transition: border-color 0.18s, background 0.18s, transform 0.1s;
+  }
+  .dl:hover { border-color: var(--hair-bright); background: var(--panel-2); transform: translateY(-2px); }
+  .dl.primary { border-color: var(--rip); background: color-mix(in srgb, var(--rip) 12%, var(--panel)); }
+  .dl.primary:hover { background: color-mix(in srgb, var(--rip) 18%, var(--panel)); border-color: #ff4422; }
+  .dl .os { width: 30px; height: 30px; flex: 0 0 auto; color: var(--text); }
+  .dl .txt { display: flex; flex-direction: column; line-height: 1.25; }
+  .dl .txt b { font-weight: 600; font-size: 0.98rem; }
+  .dl .txt span { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+  .dl-meta { text-align: center; margin-top: 16px; font-family: var(--mono); font-size: 0.76rem; color: var(--faint); }
+  .dl-meta span { color: var(--muted); }
+
+  /* ---------- sources ---------- */
+  section { padding: 64px 0; border-top: 1px solid var(--hair); margin-top: 64px; }
+  section:first-of-type { margin-top: 80px; }
+  .sec-head { text-align: center; margin-bottom: 36px; }
+  .sec-head h2 { font-weight: 600; font-size: clamp(1.5rem, 3.5vw, 2rem); letter-spacing: -0.02em; margin-top: 10px; }
+  .sec-head p { color: var(--muted); margin: 10px auto 0; max-width: 50ch; }
+
+  .sources { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 720px; margin: 0 auto; }
+  .src {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--hair);
+    border-radius: 100px; padding: 9px 18px 9px 12px;
+  }
+  .src img { width: 20px; height: 20px; display: block; }
+  .src span { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+  .sources-note { text-align: center; color: var(--faint); font-size: 0.85rem; margin-top: 24px; }
+
+  /* ---------- steps ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--hair); border: 1px solid var(--hair); border-radius: 12px; overflow: hidden; }
+  @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+  .step { background: var(--panel); padding: 28px 26px; }
+  .step .n { font-family: var(--mono); font-size: 0.78rem; color: var(--rip); letter-spacing: 0.1em; }
+  .step h3 { font-weight: 600; font-size: 1.12rem; margin: 14px 0 8px; letter-spacing: -0.01em; }
+  .step p { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  .step p code { font-family: var(--mono); font-size: 0.84em; color: var(--text); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---------- notes ---------- */
+  .notes { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .note { display: flex; gap: 14px; align-items: flex-start; background: var(--panel); border: 1px solid var(--hair); border-radius: 10px; padding: 18px 20px; }
+  .note .ico { flex: 0 0 auto; width: 22px; height: 22px; color: var(--amber); margin-top: 1px; }
+  .note div b { font-weight: 600; }
+  .note div p { color: var(--muted); font-size: 0.9rem; margin-top: 3px; line-height: 1.5; }
+  .note kbd { font-family: var(--mono); font-size: 0.82em; background: var(--panel-2); border: 1px solid var(--hair-bright); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+
+  /* ---------- footer ---------- */
+  footer { border-top: 1px solid var(--hair); padding: 40px 0 60px; margin-top: 64px; }
+  .foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; }
+  .foot .left { font-family: var(--mono); font-size: 0.8rem; color: var(--faint); max-width: 48ch; line-height: 1.6; }
+  .foot .links { display: flex; gap: 22px; }
+  .foot .links a { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); text-decoration: none; }
+  .foot .links a:hover { color: var(--text); }
+
+  :focus-visible { outline: 2px solid var(--rip); outline-offset: 3px; border-radius: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; scroll-behavior: auto; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a href="#" class="brand"><span class="tri"></span> K-RIPPER</a>
+    <nav>
+      <a href="#sources" class="nav-hide">sources</a>
+      <a href="#how" class="nav-hide">how it works</a>
+      <a href="https://github.com/KellanM/k-ripper">github ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="border:0; margin:0; padding-top:76px;">
+    <div class="wrap">
+      <p class="eyebrow">Max for Live device</p>
+      <h1>Rip audio <span class="cut">into</span> Ableton.</h1>
+      <p class="lede">Paste a link, hit RIP, and the track drops into your next empty clip slot — from SoundCloud, YouTube, Bandcamp and more. No browser, no sketchy sites, no leaving Live.</p>
+
+      <!-- interactive device -->
+      <div class="device" id="device">
+        <div class="device-top">
+          <span class="device-title">K-RIPPER</span>
+          <span class="device-state"><span class="dot" id="dot"></span><span id="state">ready</span></span>
+        </div>
+        <div class="ripbar">
+          <div class="urlfield"><span id="urltext"></span><span class="caret">▏</span></div>
+          <button class="ripbtn" id="ripbtn">RIP</button>
+        </div>
+        <div class="grid-label"><span>Session · audio track</span><span>try it ↑</span></div>
+        <div class="slots" id="slots"></div>
+      </div>
+
+      <!-- downloads -->
+      <div class="downloads">
+        <div class="dl-row" id="dlrow">
+          <a class="dl" id="dl-mac" href="https://github.com/KellanM/k-ripper/releases/latest/download/K-Ripper-macOS.zip">
+            <svg class="os" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4-.1 0-2.3-.9-2.3-3.5zM14.2 6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z"/></svg>
+            <span class="txt"><b>Download for macOS</b><span>.zip · Intel + Apple Silicon</span></span>
+          </a>
+          <a class="dl" id="dl-win" href="https://github.com/KellanM/k-ripper/releases/latest/download/K-Ripper-Windows-Setup.exe">
+            <svg class="os" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3V5.5zM3 12.5h7.5v7.1L3 18.5v-6zM11.5 4.2 21 3v8.5h-9.5V4.2zM11.5 12.5H21V21l-9.5-1.3v-7.2z"/></svg>
+            <span class="txt"><b>Download for Windows</b><span>.exe installer</span></span>
+          </a>
+        </div>
+        <p class="dl-meta"><span id="ver">v0.3.2</span> · free · requires Ableton Live 11 / 12 with Max for Live</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="sources">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Where it pulls from</p>
+        <h2>Eight sources, one paste.</h2>
+        <p>Built on yt-dlp, so the best available audio comes down at full quality — into a WAV, warp off, ready to chop.</p>
+      </div>
+      <div class="sources">
+        <div class="src"><img src="icons/sc.png" alt=""><span>SoundCloud</span></div>
+        <div class="src"><img src="icons/yt.png" alt=""><span>YouTube</span></div>
+        <div class="src"><img src="icons/bc.png" alt=""><span>Bandcamp</span></div>
+        <div class="src"><img src="icons/mc.png" alt=""><span>Mixcloud</span></div>
+        <div class="src"><img src="icons/tt.png" alt=""><span>TikTok</span></div>
+        <div class="src"><img src="icons/tw.png" alt=""><span>Twitch</span></div>
+        <div class="src"><img src="icons/vm.png" alt=""><span>Vimeo</span></div>
+        <div class="src"><img src="icons/rd.png" alt=""><span>Reddit</span></div>
+      </div>
+      <p class="sources-note">DRM platforms (Spotify, Apple Music) can't be ripped and aren't supported.</p>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">From zero to clip</p>
+        <h2>Three steps, then it's muscle memory.</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="n">01 — INSTALL</div>
+          <h3>Run the installer</h3>
+          <p>Download for your OS and run it. K-Ripper lands in your Ableton User Library, under <code>Max Audio Effect</code>.</p>
+        </div>
+        <div class="step">
+          <div class="n">02 — DROP</div>
+          <h3>Drop it on a track</h3>
+          <p>Drag K-Ripper from the browser onto any <b>audio</b> track. It rides along like any other device.</p>
+        </div>
+        <div class="step">
+          <div class="n">03 — RIP</div>
+          <h3>Paste and rip</h3>
+          <p>Copy a link, click <b>RIP</b>. The clip appears in the first empty slot. Click again mid-rip to cancel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="notes">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Before you run it</p>
+        <h2>Two things to expect.</h2>
+      </div>
+      <div class="notes">
+        <div class="note">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <div>
+            <b>An "unverified developer" warning is normal</b>
+            <p><b>macOS:</b> after it's blocked, open <kbd>System Settings → Privacy &amp; Security</kbd> and click <kbd>Open Anyway</kbd>. <b>Windows:</b> on the SmartScreen prompt, click <kbd>More info → Run anyway</kbd>. K-Ripper isn't code-signed yet — the warning is about that, not about the app.</p>
+          </div>
+        </div>
+        <div class="note">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13M9 13l12-2M6 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm15-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>
+          <div>
+            <b>Personal use only</b>
+            <p>K-Ripper is a tool, free for personal use. Rip only what you have the right to download, respect each source's terms, and don't resell or re-upload audio you don't own.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="left">K-Ripper is open source. Built by a producer, for producers. Bundles yt-dlp (Unlicense) and FFmpeg (GPL).</div>
+    <div class="links">
+      <a href="https://github.com/KellanM/k-ripper">GitHub</a>
+      <a href="https://github.com/KellanM/k-ripper/releases">Releases</a>
+      <a href="https://github.com/KellanM/k-ripper/blob/main/LICENSE">License</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- OS detection: promote the matching download ---- */
+  var ua = navigator.userAgent || "";
+  var isWin = /Win/i.test(ua) || /Windows/i.test(navigator.platform || "");
+  var isMac = /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua);
+  var row = document.getElementById("dlrow");
+  var mac = document.getElementById("dl-mac");
+  var win = document.getElementById("dl-win");
+  if (isWin) { win.classList.add("primary"); row.insertBefore(win, mac); }
+  else { mac.classList.add("primary"); } // default to mac primary (matches producer skew)
+
+  /* ---- live version label from the latest release ---- */
+  fetch("https://api.github.com/repos/KellanM/k-ripper/releases/latest")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) { if (d && d.tag_name) document.getElementById("ver").textContent = d.tag_name; })
+    .catch(function () {});
+
+  /* ---- hero: typing URL placeholder ---- */
+  var urls = [
+    "soundcloud.com/artist/track-name",
+    "youtube.com/watch?v=...",
+    "bandcamp.com/track/...",
+    "mixcloud.com/dj/the-set"
+  ];
+  var urlEl = document.getElementById("urltext");
+  var ui = 0, ci = 0, typing = true, paused = 0;
+  function tick() {
+    if (reduce) { urlEl.textContent = urls[0]; return; }
+    var word = urls[ui];
+    if (paused > 0) { paused--; }
+    else if (typing) {
+      ci++; urlEl.textContent = word.slice(0, ci);
+      if (ci >= word.length) { typing = false; paused = 22; }
+    } else {
+      ci--; urlEl.textContent = word.slice(0, ci);
+      if (ci <= 0) { typing = true; ui = (ui + 1) % urls.length; }
+    }
+    setTimeout(tick, typing ? 55 : 28);
+  }
+  tick();
+
+  /* ---- the signature: clip grid + RIP ---- */
+  var SLOTS = 5;
+  var clips = [
+    { name: "rave_cave_night_2.wav", clip: "var(--rip)" },
+    { name: "electric_love_remix.wav", clip: "var(--cyan)" },
+    { name: "all_of_the_lights.wav", clip: "var(--amber)" },
+    { name: "crush.wav", clip: "var(--green)" },
+    { name: "tell_you_straight.wav", clip: "var(--rip)" }
+  ];
+  var slotsEl = document.getElementById("slots");
+  var next = 0;
+  for (var i = 0; i < SLOTS; i++) {
+    var s = document.createElement("div");
+    s.className = "slot";
+    s.innerHTML = '<span class="launch"></span><span class="clipname"></span>' +
+      '<span class="wave">' + waveBars() + '</span>';
+    slotsEl.appendChild(s);
+  }
+  var slotEls = Array.prototype.slice.call(slotsEl.children);
+
+  function waveBars() {
+    var h = "";
+    for (var k = 0; k < 22; k++) {
+      var ht = 3 + Math.round(Math.abs(Math.sin(k * 1.7) * 14));
+      h += '<i style="height:' + ht + 'px"></i>';
+    }
+    return h;
+  }
+
+  var btn = document.getElementById("ripbtn");
+  var dot = document.getElementById("dot");
+  var state = document.getElementById("state");
+  var busy = false;
+
+  function rip() {
+    if (busy) return;
+    if (next >= SLOTS) { reset(); return; }
+    busy = true;
+    btn.disabled = true;
+    dot.classList.add("work");
+    state.textContent = "ripping…";
+    var slot = slotEls[next];
+    var data = clips[next % clips.length];
+    if (!reduce) slot.classList.add("ripping");
+
+    var delay = reduce ? 0 : 900;
+    setTimeout(function () {
+      slot.classList.remove("ripping");
+      slot.style.setProperty("--clip", data.clip);
+      slot.classList.add("filled");
+      slot.querySelector(".clipname").textContent = data.name;
+      state.textContent = "✓ slot " + (next + 1);
+      dot.classList.remove("work");
+      next++;
+      busy = false;
+      btn.disabled = false;
+      if (next >= SLOTS) { btn.textContent = "RESET"; }
+    }, delay);
+  }
+
+  function reset() {
+    slotEls.forEach(function (s) {
+      s.classList.remove("filled");
+      s.style.removeProperty("--clip");
+      s.querySelector(".clipname").textContent = "";
+    });
+    next = 0;
+    btn.textContent = "RIP";
+    state.textContent = "ready";
+  }
+
+  btn.addEventListener("click", rip);
+
+  /* auto-rip the first clip once the device scrolls into view, as a hint */
+  if (!reduce && "IntersectionObserver" in window) {
+    var seen = false;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !seen) { seen = true; setTimeout(rip, 700); io.disconnect(); }
+      });
+    }, { threshold: 0.5 });
+    io.observe(document.getElementById("device"));
+  }
+})();
+</script>
+</body>
+</html>
