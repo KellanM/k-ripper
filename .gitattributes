@@ -9,6 +9,9 @@
 # Binary / generated — never touch line endings
 *.amxd      binary
 *.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.mp4       binary
 *.maxpat    -text
 
 # Everything else: normalize on commit, checkout per-platform

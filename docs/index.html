@@ -8,52 +8,32 @@
 <meta property="og:title" content="K-Ripper">
 <meta property="og:description" content="Rip audio from a link straight into an Ableton Live track.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23100f14'/%3E%3Cpath d='M12 9l12 7-12 7z' fill='%23e8341c'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f0e13'/%3E%3Cpath d='M12 9l12 7-12 7z' fill='%23e8341c'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #efece4;
-    --paper-2: #e6e2d8;
-    --card: #faf8f2;
-    --ink: #131210;
-    --ink-soft: #524f47;
-    --ink-faint: #908d82;
-    --line: #d8d4c8;
-    --line-2: #cac6ba;
-    --device: #0f0e13;
-    --device-2: #17161d;
-    --device-line: #2a2a35;
-    --device-text: #eeeef1;
-    --device-muted: #8b8b97;
-    --signal: #e8341c;
-    --signal-deep: #bb2810;
-    --ok: #58cf7a;
+    --paper: #efece4; --paper-2: #e6e2d8; --card: #faf8f2;
+    --ink: #131210; --ink-soft: #524f47; --ink-faint: #908d82;
+    --line: #d8d4c8; --line-2: #cac6ba;
+    --device: #0f0e13; --device-line: #2a2a35; --device-text: #eeeef1; --device-muted: #8b8b97;
+    --signal: #e8341c; --signal-deep: #bb2810; --ok: #58cf7a;
     --display: "Bricolage Grotesque", system-ui, sans-serif;
-    --mono: "Space Mono", ui-monospace, monospace;
-    --ease: cubic-bezier(.2,.7,.2,1);
+    --mono: "Space Mono", ui-monospace, monospace; --ease: cubic-bezier(.2,.7,.2,1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body {
-    background: var(--paper); color: var(--ink);
-    font-family: var(--display); font-weight: 400; line-height: 1.5; font-size: 17px;
-    -webkit-font-smoothing: antialiased; overflow-x: hidden;
-  }
-  a { color: inherit; }
-  canvas { display: block; }
-
+  body { background: var(--paper); color: var(--ink); font-family: var(--display); font-weight: 400; line-height: 1.5; font-size: 17px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; } canvas { display: block; }
   .wrap { max-width: 1140px; margin: 0 auto; padding: 0 32px; position: relative; }
   @media (max-width: 600px) { .wrap { padding: 0 22px; } }
   .mono { font-family: var(--mono); }
   .label { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
 
-  /* scroll reveal */
   [data-reveal] { opacity: 0; transform: translateY(20px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
   [data-reveal].in { opacity: 1; transform: none; }
 
-  /* ---------- header ---------- */
   header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid transparent; transition: border-color 0.3s, background 0.3s; }
   header.stuck { background: color-mix(in srgb, var(--paper) 86%, transparent); backdrop-filter: blur(12px); border-color: var(--line); }
   .bar { display: flex; align-items: center; justify-content: space-between; height: 64px; }
@@ -66,84 +46,54 @@
   @media (max-width: 640px) { .bar nav a.hide { display: none; } }
 
   /* ---------- hero ---------- */
-  .hero { position: relative; padding: 92px 0 104px; overflow: hidden; }
-  .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5;
-    -webkit-mask-image: radial-gradient(120% 90% at 70% 30%, #000 25%, transparent 72%);
-    mask-image: radial-gradient(120% 90% at 70% 30%, #000 25%, transparent 72%); }
-  .hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr 1fr; gap: 76px; align-items: center; }
-  .hero-grid > * { min-width: 0; }
-  @media (max-width: 960px) { .hero-grid { grid-template-columns: 1fr; gap: 60px; } .hero { padding: 60px 0 72px; } }
-
-  .hero h1 { font-weight: 800; font-size: clamp(2.9rem, 6.4vw, 5.1rem); line-height: 0.94; letter-spacing: -0.045em; margin: 22px 0 0; }
+  .hero { position: relative; padding: 70px 0 40px; overflow: hidden; text-align: center; }
+  .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.42;
+    -webkit-mask-image: radial-gradient(120% 80% at 50% 0%, #000 20%, transparent 68%); mask-image: radial-gradient(120% 80% at 50% 0%, #000 20%, transparent 68%); }
+  .hero .inner { position: relative; z-index: 1; }
+  .hero h1 { font-weight: 800; font-size: clamp(2.9rem, 6.6vw, 5rem); line-height: 0.95; letter-spacing: -0.045em; margin: 18px auto 0; max-width: 15ch; }
   .hero h1 em { font-style: normal; color: var(--signal); }
-  .hero .sub { color: var(--ink-soft); font-size: clamp(1.04rem, 1.6vw, 1.2rem); line-height: 1.55; max-width: 43ch; margin: 24px 0 0; }
+  .hero .sub { color: var(--ink-soft); font-size: clamp(1.05rem, 1.7vw, 1.24rem); line-height: 1.5; max-width: 50ch; margin: 22px auto 0; }
 
-  .legend { margin: 36px 0 0; border-top: 1px solid var(--line); }
-  .leg { display: grid; grid-template-columns: 26px 1fr; gap: 16px; padding: 15px 2px; border-bottom: 1px solid var(--line); align-items: center; }
-  .leg .num { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 0.74rem; display: grid; place-items: center; }
-  .leg .t { font-size: 0.97rem; }
-  .leg .t b { font-weight: 700; }
-  .leg .t span { color: var(--ink-soft); }
-
-  .cta { display: flex; gap: 14px; flex-wrap: wrap; margin: 34px 0 0; }
-  .btn { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; padding: 15px 22px; border-radius: 11px; font-weight: 700; font-size: 0.96rem;
-    border: 1px solid var(--ink); background: var(--card); color: var(--ink); transition: transform 0.12s var(--ease), box-shadow 0.18s, background 0.15s; }
+  .cta { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 30px 0 0; }
+  .btn { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; padding: 15px 24px; border-radius: 11px; font-weight: 700; font-size: 0.96rem; border: 1px solid var(--ink); background: var(--card); color: var(--ink); transition: transform 0.12s var(--ease), box-shadow 0.18s, background 0.15s; }
   .btn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
   .btn .sm { display: block; font-family: var(--mono); font-weight: 400; font-size: 0.66rem; opacity: 0.78; margin-top: 2px; }
+  .btn .t { text-align: left; }
   .btn.primary { background: var(--signal); border-color: var(--signal); color: #fff; box-shadow: 0 8px 0 -2px var(--signal-deep); }
   .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 0 -2px var(--signal-deep), 0 14px 30px -14px rgba(232,52,28,0.6); }
   .btn:not(.primary):hover { transform: translateY(-2px); box-shadow: 0 10px 26px -14px rgba(0,0,0,0.45); }
-
-  .trust { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 22px 0 0; }
+  .trust { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; margin: 18px 0 0; }
   .trust span { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); display: inline-flex; align-items: center; gap: 7px; }
   .trust span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--signal); opacity: 0.7; }
 
-  /* ---------- device showpiece ---------- */
-  .stage { perspective: 1400px; display: flex; justify-content: center; }
-  .device { width: 100%; max-width: 420px; position: relative; transform-style: preserve-3d; transition: transform 0.4s var(--ease);
-    background: linear-gradient(180deg, #18171f, #0e0d12); border: 1px solid var(--device-line); border-radius: 18px; padding: 22px;
-    box-shadow: 0 50px 80px -34px rgba(15,14,19,0.55), 0 14px 30px -16px rgba(15,14,19,0.4), inset 0 1px 0 rgba(255,255,255,0.06); }
-  .d-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-  .d-name { color: var(--device-text); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.04em; }
-  .d-state { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 0.68rem; color: var(--device-muted); }
-  .d-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(88,207,122,0.5); animation: pulse 2.6s infinite; }
-  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(88,207,122,0.45);} 70%{box-shadow:0 0 0 6px rgba(88,207,122,0);} 100%{box-shadow:0 0 0 0 rgba(88,207,122,0);} }
+  /* ---------- the demo (proof) ---------- */
+  .demo { position: relative; z-index: 1; max-width: 940px; margin: 52px auto 0; }
+  .demo-frame { position: relative; border-radius: 16px; overflow: hidden; background: var(--device); border: 1px solid var(--device-line);
+    box-shadow: 0 60px 90px -40px rgba(15,14,19,0.5), 0 18px 40px -20px rgba(15,14,19,0.4); }
+  .demo-bar { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 14px; background: #16151b; border-bottom: 1px solid var(--device-line); }
+  .demo-bar .dots { display: flex; gap: 6px; }
+  .demo-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: #34343f; }
+  .demo-bar .ttl { font-family: var(--mono); font-size: 0.68rem; color: var(--device-muted); letter-spacing: 0.04em; }
+  .demo-bar .rec { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: #c9c9d2; }
+  .demo-bar .rec::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 0 rgba(232,52,28,0.5); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(232,52,28,0.5);} 70%{box-shadow:0 0 0 6px rgba(232,52,28,0);} 100%{box-shadow:0 0 0 0 rgba(232,52,28,0);} }
+  .demo-vid { display: block; width: 100%; aspect-ratio: 1676/1080; background: #0a0a0e; cursor: pointer; }
+  .demo .sound { position: absolute; right: 14px; bottom: 14px; z-index: 3; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 100px; border: 0; cursor: pointer;
+    background: rgba(10,10,14,0.7); backdrop-filter: blur(8px); color: #fff; font-family: var(--mono); font-size: 0.72rem; transition: background 0.15s; }
+  .demo .sound:hover { background: rgba(10,10,14,0.92); }
+  .demo .sound svg { width: 15px; height: 15px; }
+  .demo-cap { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-faint); margin: 16px 0 0; }
 
-  .d-rip { display: flex; gap: 10px; }
-  .d-url { flex: 1; min-width: 0; height: 46px; background: #08080c; border: 1px solid var(--device-line); border-radius: 10px; display: flex; align-items: center; padding: 0 14px; font-family: var(--mono); font-size: 0.76rem; color: var(--device-muted); overflow: hidden; white-space: nowrap; }
-  .d-url .car { color: var(--signal); animation: blink 1.1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .d-btn { flex: 0 0 auto; height: 46px; padding: 0 26px; border-radius: 10px; background: var(--signal); color: #fff; font-family: var(--display); font-weight: 800; font-size: 0.92rem; letter-spacing: 0.05em; display: grid; place-items: center; cursor: pointer; user-select: none;
-    box-shadow: 0 0 26px -4px rgba(232,52,28,0.65); transition: transform 0.1s, filter 0.15s; }
-  .d-btn:hover { filter: brightness(1.08); }
-  .d-btn:active { transform: translateY(1px); }
-
-  /* oscilloscope screen */
-  .scope { position: relative; margin: 16px 0 0; height: 96px; border-radius: 11px; overflow: hidden; background: radial-gradient(120% 140% at 50% 0%, #14131a, #0a0a0e); border: 1px solid var(--device-line); }
-  .scope canvas { width: 100%; height: 100%; }
-  .scope .tag { position: absolute; top: 9px; left: 11px; font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a66; z-index: 2; }
-
-  .d-glabel { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: #55555f; margin: 18px 0 9px; }
-  .d-slots { display: flex; flex-direction: column; gap: 6px; }
-  .d-slot { height: 36px; border-radius: 8px; background: #0a0a0e; border: 1px solid var(--device-line); display: flex; align-items: center; gap: 10px; padding: 0 12px; transition: background 0.4s, border-color 0.4s; }
-  .d-slot .play { border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid #4a4a54; transition: border-left-color 0.3s; }
-  .d-slot .cn { font-family: var(--mono); font-size: 0.73rem; color: var(--device-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .d-slot.full { background: color-mix(in srgb, var(--signal) 16%, #0a0a0e); border-color: color-mix(in srgb, var(--signal) 48%, var(--device-line)); }
-  .d-slot.full .play { border-left-color: var(--signal); }
-  .d-slot.full .cn { color: var(--device-text); }
-
-  .mark { position: absolute; width: 27px; height: 27px; border-radius: 50%; background: var(--ink); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 0.78rem; display: grid; place-items: center; border: 2px solid var(--paper); box-shadow: 0 5px 16px -5px rgba(0,0,0,0.55); z-index: 3; }
-  .mark.m1 { top: 64px; left: -13px; } .mark.m2 { top: 64px; right: -13px; } .mark.m3 { bottom: 70px; left: -13px; }
-  @media (max-width: 960px) { .mark { display: none; } }
-
-  .spec { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 24px auto 0; max-width: 420px; }
-  .spec div { background: var(--card); padding: 13px 14px; }
-  .spec dt { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
-  .spec dd { font-weight: 700; font-size: 0.84rem; margin-top: 4px; }
-  @media (max-width: 460px) { .spec { grid-template-columns: repeat(2, 1fr); } }
+  /* steps row */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 940px; margin: 56px auto 0; text-align: left; }
+  @media (max-width: 720px) { .steps { grid-template-columns: 1fr; gap: 18px; } }
+  .step { display: grid; grid-template-columns: 28px 1fr; gap: 14px; align-items: start; }
+  .step .num { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 0.76rem; display: grid; place-items: center; }
+  .step .t b { font-weight: 700; display: block; margin-bottom: 3px; }
+  .step .t span { color: var(--ink-soft); font-size: 0.92rem; line-height: 1.5; }
 
   /* ---------- sources ---------- */
-  .band { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-2); }
+  .band { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-2); margin-top: 96px; }
   .sources-in { padding: 72px 0; }
   .sources-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 34px; }
   .sources-head h2 { font-weight: 700; font-size: clamp(1.6rem, 3.4vw, 2.3rem); letter-spacing: -0.025em; line-height: 1.02; }
@@ -152,18 +102,28 @@
   @media (max-width: 760px) { .srcs { grid-template-columns: repeat(2, 1fr); } }
   .src { display: flex; align-items: center; gap: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 13px; padding: 17px 18px; transition: transform 0.16s var(--ease), border-color 0.16s, box-shadow 0.16s; }
   .src:hover { transform: translateY(-3px); border-color: var(--line-2); box-shadow: 0 14px 30px -18px rgba(0,0,0,0.4); }
-  .src img { width: 24px; height: 24px; }
-  .src b { font-weight: 700; font-size: 0.92rem; }
+  .src img { width: 24px; height: 24px; } .src b { font-weight: 700; font-size: 0.92rem; }
   .src-note { margin-top: 24px; font-family: var(--mono); font-size: 0.76rem; color: var(--ink-faint); }
 
+  /* ---------- voices ---------- */
+  .voices { padding: 92px 0; }
+  .voices .vh { text-align: center; margin-bottom: 44px; }
+  .voices .vh h2 { font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.1rem); letter-spacing: -0.025em; margin-top: 10px; }
+  .quotes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 880px; margin: 0 auto; }
+  @media (max-width: 720px) { .quotes { grid-template-columns: 1fr; } }
+  .quote { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 30px 30px 26px; }
+  .quote p { font-size: 1.32rem; line-height: 1.35; letter-spacing: -0.02em; font-weight: 500; }
+  .quote .by { display: flex; align-items: center; gap: 11px; margin-top: 22px; }
+  .quote .av { width: 32px; height: 32px; border-radius: 50%; background: var(--paper-2); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 700; font-size: 0.82rem; color: var(--ink-soft); }
+  .quote .nm { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-soft); }
+
   /* ---------- faq ---------- */
-  .faq-sec { padding: 104px 0; }
+  .faq-sec { padding: 0 0 104px; }
   .faq-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 56px; align-items: start; }
-  @media (max-width: 860px) { .faq-grid { grid-template-columns: 1fr; gap: 36px; } .faq-sec { padding: 72px 0; } }
+  @media (max-width: 860px) { .faq-grid { grid-template-columns: 1fr; gap: 36px; } .faq-sec { padding: 0 0 72px; } }
   .faq-intro h2 { font-weight: 700; font-size: clamp(1.8rem, 3.6vw, 2.6rem); letter-spacing: -0.03em; line-height: 1.0; margin-top: 12px; }
   .faq-intro p { color: var(--ink-soft); margin-top: 16px; font-size: 0.98rem; line-height: 1.6; max-width: 34ch; }
   .faq-intro .gh { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font-family: var(--mono); font-size: 0.82rem; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
-
   .faq { border-top: 1px solid var(--line); }
   details { border-bottom: 1px solid var(--line); }
   summary { list-style: none; cursor: pointer; padding: 22px 2px; display: flex; align-items: center; gap: 16px; font-weight: 700; font-size: 1.06rem; letter-spacing: -0.01em; }
@@ -174,12 +134,10 @@
   summary .pm::before { top: 7px; left: 0; width: 16px; height: 2px; }
   summary .pm::after { top: 0; left: 7px; width: 2px; height: 16px; }
   details[open] summary .pm::after { transform: rotate(90deg); opacity: 0; }
-  .faq .ans { overflow: hidden; }
   .faq .ans p { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.65; padding: 0 2px 24px; max-width: 60ch; }
   .faq .ans p b { color: var(--ink); }
   kbd { font-family: var(--mono); font-size: 0.82em; background: var(--paper-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--ink); white-space: nowrap; }
 
-  /* ---------- footer ---------- */
   footer { border-top: 1px solid var(--line); padding: 0 0 62px; }
   .foot-wave { height: 64px; position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
   .foot-wave canvas { width: 100%; height: 100%; opacity: 0.5; }
@@ -214,59 +172,47 @@
 <main>
   <section class="hero">
     <canvas class="hero-bg" id="herobg"></canvas>
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <p class="label" data-reveal>Max for Live · audio ripper</p>
-        <h1 data-reveal>Rip audio <em>into</em> Ableton.</h1>
-        <p class="sub" data-reveal>Pull a track off the web and drop it straight into your session — from SoundCloud, YouTube, Bandcamp and more. No browser tabs, no sketchy sites, no leaving Live.</p>
+    <div class="wrap inner">
+      <p class="label" data-reveal>Max for Live · audio ripper</p>
+      <h1 data-reveal>Rip audio <em>into</em> Ableton.</h1>
+      <p class="sub" data-reveal>Paste a link, hit RIP, and the track drops straight into your session — SoundCloud, YouTube, Bandcamp and more. No browser tabs, no sketchy sites, no leaving Live.</p>
 
-        <div class="legend" data-reveal>
-          <div class="leg"><span class="num">1</span><span class="t"><b>Paste a link</b> <span>— or rip whatever's on your clipboard.</span></span></div>
-          <div class="leg"><span class="num">2</span><span class="t"><b>Hit RIP</b> <span>— best-quality audio downloads and converts to WAV.</span></span></div>
-          <div class="leg"><span class="num">3</span><span class="t"><b>It lands</b> <span>— in the next empty clip slot, warp off, ready to chop.</span></span></div>
-        </div>
-
-        <div class="cta" id="cta" data-reveal>
-          <a class="btn primary" id="dl-mac" href="https://github.com/KellanM/k-ripper/releases/latest/download/K-Ripper-macOS.zip">
-            <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4-.1 0-2.3-.9-2.3-3.5zM14.2 6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z"/></svg>
-            <span>Download for macOS<span class="sm">.zip · Intel + Apple Silicon</span></span>
-          </a>
-          <a class="btn" id="dl-win" href="https://github.com/KellanM/k-ripper/releases/latest/download/K-Ripper-Windows-Setup.exe">
-            <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3V5.5zM3 12.5h7.5v7.1L3 18.5v-6zM11.5 4.2 21 3v8.5h-9.5V4.2zM11.5 12.5H21V21l-9.5-1.3v-7.2z"/></svg>
-            <span>Download for Windows<span class="sm">.exe installer</span></span>
-          </a>
-        </div>
-        <div class="trust" data-reveal>
-          <span>Open source</span><span>Free, no account</span><span id="vertrust">v0.3.2</span><span>Live 11 / 12 + M4L</span>
-        </div>
+      <div class="cta" id="cta" data-reveal>
+        <a class="btn primary" id="dl-mac" href="https://github.com/KellanM/k-ripper/releases/latest/download/K-Ripper-macOS.zip">
+          <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4-.1 0-2.3-.9-2.3-3.5zM14.2 6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.2z"/></svg>
+          <span class="t">Download for macOS<span class="sm">.zip · Intel + Apple Silicon</span></span>
+        </a>
+        <a class="btn" id="dl-win" href="https://github.com/KellanM/k-ripper/releases/latest/download/K-Ripper-Windows-Setup.exe">
+          <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3V5.5zM3 12.5h7.5v7.1L3 18.5v-6zM11.5 4.2 21 3v8.5h-9.5V4.2zM11.5 12.5H21V21l-9.5-1.3v-7.2z"/></svg>
+          <span class="t">Download for Windows<span class="sm">.exe installer</span></span>
+        </a>
+      </div>
+      <div class="trust" data-reveal>
+        <span>Open source</span><span>Free, no account</span><span id="vertrust">v0.3.2</span><span>Live 11 / 12 + M4L</span>
       </div>
 
-      <div data-reveal>
-        <div class="stage">
-          <div class="device" id="device">
-            <span class="mark m1">1</span><span class="mark m2">2</span><span class="mark m3">3</span>
-            <div class="d-top">
-              <span class="d-name">K-RIPPER</span>
-              <span class="d-state"><span class="d-dot"></span> <span id="dstate">✓ slot 1</span></span>
-            </div>
-            <div class="d-rip">
-              <div class="d-url"><span id="durl">soundcloud.com/lsdream/rave-cave</span><span class="car">▏</span></div>
-              <div class="d-btn" id="ripbtn">RIP</div>
-            </div>
-            <div class="scope"><span class="tag">audio · live</span><canvas id="scope"></canvas></div>
-            <div class="d-glabel">Session · audio track</div>
-            <div class="d-slots">
-              <div class="d-slot full" id="slot0"><span class="play"></span><span class="cn">rave_cave_night_2.wav</span></div>
-              <div class="d-slot" id="slot1"><span class="play"></span><span class="cn"></span></div>
-            </div>
+      <div class="demo" data-reveal>
+        <div class="demo-frame">
+          <div class="demo-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="ttl">k-ripper · live demo</span>
+            <span class="rec">real screen capture</span>
           </div>
+          <video class="demo-vid" id="demo" poster="demo-poster.jpg" muted loop playsinline preload="metadata">
+            <source src="demo.mp4" type="video/mp4">
+          </video>
+          <button class="sound" id="sound" aria-label="Toggle sound">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="soundico"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+            <span id="soundlbl">sound off</span>
+          </button>
         </div>
-        <dl class="spec" data-reveal>
-          <div><dt>Format</dt><dd>Max&nbsp;for&nbsp;Live</dd></div>
-          <div><dt>Sources</dt><dd>8 sites</dd></div>
-          <div><dt>Output</dt><dd>WAV 44.1k</dd></div>
-          <div><dt>Price</dt><dd>Free</dd></div>
-        </dl>
+        <p class="demo-cap" data-reveal>26 seconds, unedited — paste a YouTube link, RIP, and the clip lands in Ableton.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step" data-reveal><span class="num">1</span><span class="t"><b>Paste a link</b><span>Or rip whatever's on your clipboard.</span></span></div>
+        <div class="step" data-reveal><span class="num">2</span><span class="t"><b>Hit RIP</b><span>Best-quality audio downloads, converts to WAV.</span></span></div>
+        <div class="step" data-reveal><span class="num">3</span><span class="t"><b>It lands</b><span>In the next empty slot, warp off, ready to chop.</span></span></div>
       </div>
     </div>
   </section>
@@ -290,6 +236,25 @@
       <p class="src-note" data-reveal>DRM platforms (Spotify, Apple Music) can't be ripped and aren't supported.</p>
     </div>
   </div>
+
+  <section class="voices">
+    <div class="wrap">
+      <div class="vh" data-reveal>
+        <p class="label">From the community</p>
+        <h2>Producers asked for this.</h2>
+      </div>
+      <div class="quotes">
+        <div class="quote" data-reveal>
+          <p>“This is fire! Thank you 🔥”</p>
+          <div class="by"><span class="av">B</span><span class="nm">Brendan L.</span></div>
+        </div>
+        <div class="quote" data-reveal>
+          <p>“I was gonna ask for this! Thank you 🐐”</p>
+          <div class="by"><span class="av">K</span><span class="nm">Khai T.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="faq-sec" id="faq">
     <div class="wrap faq-grid">
@@ -345,12 +310,10 @@
   "use strict";
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---- header shadow on scroll ---- */
   var hdr = document.getElementById("hdr");
   var onScroll = function () { hdr.classList.toggle("stuck", scrollY > 8); };
   onScroll(); addEventListener("scroll", onScroll, { passive: true });
 
-  /* ---- scroll reveals (staggered within groups) ---- */
   var io = new IntersectionObserver(function (es) {
     es.forEach(function (e) {
       if (e.isIntersecting) {
@@ -363,95 +326,48 @@
   }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
   document.querySelectorAll("[data-reveal]").forEach(function (el) { io.observe(el); });
 
-  /* ---- oscilloscope: an audio-like trace on a graticule ---- */
-  function scope(canvas, opts) {
-    opts = opts || {};
-    var ctx = canvas.getContext("2d"), raf = 0, t = 0, vis = true, dead = 0, env = opts.startEnv == null ? 1 : opts.startEnv;
-    var color = opts.color || "#e8341c", grid = opts.grid !== false, glow = opts.glow !== false, amp = opts.amp || 0.34, target = 1;
+  /* ambient oscilloscope (hero bg + footer) */
+  function scope(canvas, o) {
+    o = o || {}; var ctx = canvas.getContext("2d"), t = 0, vis = true, dead = 0;
     function size() { var d = Math.min(2, devicePixelRatio || 1); canvas.width = canvas.clientWidth * d; canvas.height = canvas.clientHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
     size(); addEventListener("resize", size);
     function frame() {
-      var w = canvas.clientWidth, h = canvas.clientHeight;
-      ctx.clearRect(0, 0, w, h);
-      if (grid) {
-        ctx.strokeStyle = "rgba(255,255,255,0.045)"; ctx.lineWidth = 1;
-        for (var x = 0; x <= w + 1; x += w / 8) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-        for (var y = 0; y <= h + 1; y += h / 4) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-      }
-      env += (target - env) * 0.06;
+      var w = canvas.clientWidth, h = canvas.clientHeight; ctx.clearRect(0, 0, w, h);
       ctx.beginPath();
       for (var i = 0; i <= w; i++) {
-        var p = i / w;
-        var shape = 0.45 + 0.55 * Math.sin(p * Math.PI);            // amplitude across width
-        var v = Math.sin(p * 26 + t) * 0.5 + Math.sin(p * 57 + t * 1.7) * 0.3
-              + Math.sin(p * 113 + t * 0.7) * 0.16 + Math.sin(p * 211 + t * 2.3) * 0.08;
-        var yy = h / 2 + v * shape * env * (h * amp);
+        var p = i / w, shape = 0.45 + 0.55 * Math.sin(p * Math.PI);
+        var v = Math.sin(p * 26 + t) * 0.5 + Math.sin(p * 57 + t * 1.7) * 0.3 + Math.sin(p * 113 + t * 0.7) * 0.16;
+        var yy = h / 2 + v * shape * (h * (o.amp || 0.28));
         i ? ctx.lineTo(i, yy) : ctx.moveTo(i, yy);
       }
-      ctx.strokeStyle = color; ctx.lineWidth = 2;
-      if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 9; }
-      ctx.stroke(); ctx.shadowBlur = 0;
-      t += opts.speed || 0.045;
-      if (!reduce && vis) raf = requestAnimationFrame(frame); else dead = 1;
+      ctx.strokeStyle = o.color || "rgba(232,52,28,0.5)"; ctx.lineWidth = 2; ctx.stroke();
+      t += o.speed || 0.025;
+      if (!reduce && vis) requestAnimationFrame(frame); else dead = 1;
     }
     frame();
-    var ob = new IntersectionObserver(function (e) { vis = e[0].isIntersecting; if (vis && dead) { dead = 0; frame(); } });
-    ob.observe(canvas);
-    return { rip: function () { env = 0.05; target = 1; } };
+    new IntersectionObserver(function (e) { vis = e[0].isIntersecting; if (vis && dead) { dead = 0; frame(); } }).observe(canvas);
   }
+  scope(document.getElementById("herobg"), { amp: 0.22, speed: 0.02 });
+  scope(document.getElementById("footwave"), { color: "rgba(19,18,16,0.32)", amp: 0.3, speed: 0.03 });
 
-  var sc = scope(document.getElementById("scope"), { amp: 0.36 });
-  scope(document.getElementById("herobg"), { color: "rgba(232,52,28,0.5)", grid: false, glow: false, amp: 0.22, speed: 0.02, startEnv: 1 });
-  scope(document.getElementById("footwave"), { color: "rgba(19,18,16,0.32)", grid: false, glow: false, amp: 0.3, speed: 0.03 });
-
-  /* ---- interactive RIP: re-arm the demo ---- */
-  var btn = document.getElementById("ripbtn"), state = document.getElementById("dstate"),
-      slot0 = document.getElementById("slot0"), slot1 = document.getElementById("slot1"),
-      durl = document.getElementById("durl");
-  var demoUrls = ["youtube.com/watch?v=…", "bandcamp.com/track/…", "soundcloud.com/artist/…"];
-  var busy = false, di = 0;
-  btn.addEventListener("click", function () {
-    if (busy) return; busy = true;
-    var url = demoUrls[di % demoUrls.length]; di++;
-    durl.textContent = url;
-    state.textContent = "ripping…"; sc.rip();
-    slot1.classList.remove("full"); slot1.querySelector(".cn").textContent = "";
-    var pct = 0, iv = setInterval(function () {
-      pct += 7 + Math.random() * 12; if (pct >= 100) { pct = 100; clearInterval(iv); finish(); }
-      state.textContent = "ripping " + Math.floor(pct) + "%";
-    }, reduce ? 30 : 140);
-    function finish() {
-      setTimeout(function () {
-        slot1.classList.add("full");
-        slot1.querySelector(".cn").textContent = url.split("/")[0].replace(/\W+/g, "_") + ".wav";
-        state.textContent = "✓ slot 2"; busy = false;
-      }, reduce ? 0 : 300);
-    }
+  /* demo video: muted autoplay loop, click to pause, sound toggle */
+  var vid = document.getElementById("demo"), sBtn = document.getElementById("sound"), sLbl = document.getElementById("soundlbl"), sIco = document.getElementById("soundico");
+  if (!reduce) { var pr = vid.play(); if (pr && pr.catch) pr.catch(function () {}); }
+  vid.addEventListener("click", function () { vid.paused ? vid.play() : vid.pause(); });
+  sBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    vid.muted = !vid.muted;
+    if (!vid.muted && vid.paused) vid.play();
+    sLbl.textContent = vid.muted ? "sound off" : "sound on";
+    sIco.innerHTML = vid.muted
+      ? '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/>'
+      : '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/>';
   });
 
-  /* ---- device parallax tilt (pointer, desktop only) ---- */
-  var device = document.getElementById("device"), stage = device.parentElement;
-  if (!reduce && matchMedia("(hover: hover)").matches) {
-    var rx = 0, ry = 0, tx = 0, ty = 0, ticking = false;
-    stage.addEventListener("pointermove", function (e) {
-      var r = stage.getBoundingClientRect();
-      tx = ((e.clientX - r.left) / r.width - 0.5) * 2; ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
-      if (!ticking) { ticking = true; requestAnimationFrame(loop); }
-    });
-    stage.addEventListener("pointerleave", function () { tx = 0; ty = 0; });
-    function loop() {
-      rx += (ty * -4 - rx) * 0.1; ry += (tx * 6 - ry) * 0.1;
-      device.style.transform = "rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)";
-      if (Math.abs(rx - ty * -4) > 0.05 || Math.abs(ry - tx * 6) > 0.05) requestAnimationFrame(loop); else ticking = false;
-    }
-  }
-
-  /* ---- OS detection ---- */
   var ua = navigator.userAgent || "", isWin = /Win/i.test(ua) || /Windows/i.test(navigator.platform || "");
   var cta = document.getElementById("cta"), mac = document.getElementById("dl-mac"), win = document.getElementById("dl-win");
   if (isWin) { win.classList.add("primary"); mac.classList.remove("primary"); cta.insertBefore(win, mac); }
 
-  /* ---- live version ---- */
   fetch("https://api.github.com/repos/KellanM/k-ripper/releases/latest")
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) { if (d && d.tag_name) document.getElementById("vertrust").textContent = d.tag_name; })
