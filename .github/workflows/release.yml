@@ -1,0 +1,65 @@
+name: release
+
+# Push a tag like v0.3.2 to build both installers and attach them to a
+# GitHub Release. Binaries are fetched fresh on native runners (they're not
+# committed to the repo).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch Windows binaries
+        shell: bash
+        run: bash scripts/fetch-binaries.sh windows
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+      - name: Build installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\kripper.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/K-Ripper-Windows-Setup.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch macOS binaries
+        run: bash scripts/fetch-binaries.sh macos
+      - name: Mirror device files into Mac bundle
+        run: |
+          cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs \
+             kripper/package.json kripper/LICENSES.txt kripper-mac/
+          rm -rf kripper-mac/assets && cp -r kripper/assets kripper-mac/
+      - name: Build zip
+        run: |
+          mkdir -p dist staging/K-Ripper
+          cp -R kripper-mac/* staging/K-Ripper/
+          chmod +x staging/K-Ripper/install.command staging/K-Ripper/bin/*
+          (cd staging && zip -qr ../dist/K-Ripper-macOS.zip K-Ripper)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/K-Ripper-macOS.zip
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts }
+      - name: Create / update release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/windows/K-Ripper-Windows-Setup.exe
+            artifacts/macos/K-Ripper-macOS.zip
+          generate_release_notes: true

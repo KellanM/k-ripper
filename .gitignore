@@ -1,0 +1,34 @@
+# Bundled binaries — fetched at build time, never committed (too large; each
+# ffmpeg is ~80MB). Run scripts/fetch-binaries.sh to populate locally.
+kripper/bin/
+kripper-mac/bin/
+
+# Build outputs
+dist/
+
+# Ripped audio + staging
+downloads/
+kripper/downloads/
+kripper-mac/downloads/
+.staging/
+
+# Legacy pre-K-Ripper artifacts (Flask backend + old Max device) — kept on
+# disk for reference but not part of the published project.
+app.py
+download.py
+install.bat
+install.ps1
+start_backend.bat
+ableton/
+
+# Node
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+._*
+
+# Temp test scripts
+_*.mjs

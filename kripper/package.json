@@ -1,0 +1,9 @@
+{
+  "name": "k-ripper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "K-Ripper Node-for-Max engine. Wraps bundled yt-dlp + ffmpeg, no separate backend.",
+  "main": "kripper.mjs",
+  "dependencies": {}
+}

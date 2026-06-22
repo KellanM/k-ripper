@@ -1,0 +1,40 @@
+K-Ripper — license and attribution notices
+===========================================
+
+K-Ripper (the Max for Live device, scripts, and installer) is provided
+free of charge for PERSONAL USE. Use it only with content you have the
+right to download. You are responsible for complying with the terms of
+service of the platforms you rip from and with applicable copyright law.
+Do not redistribute, sell, or re-upload audio you do not own.
+
+K-Ripper bundles the following third-party software, each under its own
+license:
+
+-------------------------------------------------------------------
+yt-dlp
+-------------------------------------------------------------------
+License:  The Unlicense (public domain)
+Source:   https://github.com/yt-dlp/yt-dlp
+The bundled binary is an unmodified official release. It self-updates
+from the official GitHub releases.
+
+-------------------------------------------------------------------
+FFmpeg
+-------------------------------------------------------------------
+License:  GNU General Public License (GPL) version 3 (static builds)
+Project:  https://ffmpeg.org
+The bundled binaries are unmodified static builds from:
+  - Windows (ffmpeg.exe):       https://www.gyan.dev/ffmpeg/builds/
+  - macOS Intel (ffmpeg-x64):   https://evermeet.cx/ffmpeg/
+  - macOS ARM (ffmpeg-arm64):   https://github.com/eugeneware/ffmpeg-static
+Full corresponding source code for FFmpeg is available at
+https://ffmpeg.org/download.html and via the build pages above.
+The full GPL v3 text: https://www.gnu.org/licenses/gpl-3.0.txt
+
+-------------------------------------------------------------------
+Simple Icons / platform marks
+-------------------------------------------------------------------
+Platform icons are rendered from publicly available single-color brand
+SVGs and are used solely to indicate which platforms the underlying
+tools support. All trademarks belong to their respective owners; no
+affiliation or endorsement is implied.

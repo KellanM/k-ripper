@@ -1,0 +1,15 @@
+# Shell scripts MUST stay LF — CRLF breaks the shebang on macOS/Linux, which
+# would make the Mac installer (install.command) and CI build scripts fail.
+*.sh        text eol=lf
+*.command   text eol=lf
+
+# Windows batch stays CRLF
+*.bat       text eol=crlf
+
+# Binary / generated — never touch line endings
+*.amxd      binary
+*.png       binary
+*.maxpat    -text
+
+# Everything else: normalize on commit, checkout per-platform
+*           text=auto
