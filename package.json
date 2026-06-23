@@ -1,0 +1,8 @@
+{
+  "name": "k-ripper",
+  "private": true,
+  "description": "K-Ripper test suite (Node built-in test runner, no dependencies).",
+  "scripts": {
+    "test": "node --test"
+  }
+}
