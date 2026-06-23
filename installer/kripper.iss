@@ -7,7 +7,7 @@
 ; admin rights required.
 
 #define MyAppName "K-Ripper"
-#define MyAppVersion "0.3.2"
+#define MyAppVersion "0.3.3"
 #define MyAppPublisher "K-Ripper"
 #define MyAppURL "https://github.com/"
 

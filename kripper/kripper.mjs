@@ -56,7 +56,7 @@ const YTDLP_TIMEOUT_MS = 30 * 60 * 1000; // 30 min — covers multi-hour DJ sets
 const FFMPEG_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Build version. Bump this together with the installer's MyAppVersion.
-const KRIPPER_VERSION = "0.3.2";
+const KRIPPER_VERSION = "0.3.3";
 
 // Update check: on load, the device fetches a tiny JSON manifest and, if a
 // newer version is published, nudges the user in the status line. This is how

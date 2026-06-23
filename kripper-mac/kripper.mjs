@@ -23,6 +23,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
 import os from "os";
+import { AUDIO_EXT, extractUrl, pickAudio, pickArt, stripExt, wavName, parseProgress, classifyError, isNewer } from "./lib.mjs";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -55,7 +56,7 @@ const YTDLP_TIMEOUT_MS = 30 * 60 * 1000; // 30 min — covers multi-hour DJ sets
 const FFMPEG_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Build version. Bump this together with the installer's MyAppVersion.
-const KRIPPER_VERSION = "0.3.2";
+const KRIPPER_VERSION = "0.3.3";
 
 // Update check: on load, the device fetches a tiny JSON manifest and, if a
 // newer version is published, nudges the user in the status line. This is how
@@ -97,18 +98,8 @@ function killTree(child) {
 const SPAWN_OPTS = { windowsHide: true, detached: process.platform !== "win32" };
 
 function friendlyError(raw) {
-  const msg = String(raw || "unknown error");
-  Max.post(`[k-ripper] error detail: ${msg}`);
-  if (/HTTP Error 404|Not Found/i.test(msg)) return "unavailable or private";
-  if (/HTTP Error 40[13]/i.test(msg)) return "access denied";
-  if (/getaddrinfo|ENOTFOUND|Failed to resolve|Connection|timed? ?out|ETIMEDOUT|ECONNRESET/i.test(msg)) return "network error";
-  if (/Unsupported URL/i.test(msg)) return "unsupported site";
-  if (/ENOENT/i.test(msg)) return "engine missing — reinstall";
-  // ffmpeg exits with EACCES (-13, shown by Windows as 4294967283) when the
-  // output file is locked — usually a WAV currently loaded in a Live clip.
-  if (/Permission denied|EACCES|EBUSY|exit 4294967283/i.test(msg)) return "file in use by Live — remove old clip";
-  // Trim yt-dlp's "ERROR: [site] id:" prefix noise for everything else.
-  return msg.replace(/^ERROR:\s*(\[[^\]]*\]\s*)?([\w-]+:\s*)?/, "").slice(0, 60);
+  Max.post(`[k-ripper] error detail: ${String(raw || "unknown error")}`);
+  return classifyError(raw);
 }
 
 function ensureDownloadsDir() {
@@ -127,13 +118,6 @@ async function readClipboard() {
   const { stdout } = await execAsync(cmd);
   return stdout.trim();
 }
-
-function extractUrl(raw) {
-  const m = String(raw || "").match(/https?:\/\/[^\s"'<>]+/i);
-  return m ? m[0] : null;
-}
-
-const AUDIO_EXT = /\.(m4a|webm|mp3|opus|ogg|aac|flac|wav|mp4)$/i;
 
 // Download into an empty staging dir and resolve the produced file from the
 // filesystem — NOT from yt-dlp's stdout. yt-dlp's --print after_move:filepath
@@ -182,16 +166,8 @@ function runYtdlp(url, stageDir) {
     child.stdout.on("data", (buf) => {
       for (const line of buf.toString().split(/\r?\n/)) {
         if (!line.trim()) continue;
-        // HLS: the fragment counter is monotonic, while the % bounces
-        // around a moving size estimate. Prefer frags when present.
-        const frag = line.match(/\(frag (\d+)\/(\d+)\)/);
-        if (frag) {
-          const total = parseInt(frag[2]) || 1;
-          Max.outlet("progress", Math.min(100, Math.floor(100 * parseInt(frag[1]) / total)));
-          continue;
-        }
-        const pct = line.match(/\[download\]\s+(\d+(?:\.\d+)?)%/);
-        if (pct) Max.outlet("progress", Math.floor(parseFloat(pct[1])));
+        const p = parseProgress(line);
+        if (p !== null) Max.outlet("progress", p);
       }
     });
     child.stderr.on("data", (buf) => { stderr += buf.toString(); });
@@ -213,9 +189,9 @@ function runYtdlp(url, stageDir) {
       // The staging dir was empty; the produced audio file is unambiguous.
       let files;
       try { files = fs.readdirSync(stageDir); } catch { files = []; }
-      const audioName = files.find((f) => AUDIO_EXT.test(f));
+      const audioName = pickAudio(files);
       if (!audioName) { reject(new Error("no audio file produced")); return; }
-      const jpgName = files.find((f) => /\.jpe?g$/i.test(f));
+      const jpgName = pickArt(files);
       resolve({
         audio: path.join(stageDir, audioName),
         art: jpgName ? path.join(stageDir, jpgName) : null,
@@ -257,7 +233,7 @@ function runFfmpeg(args) {
 
 // Convert the staged source to a WAV in destDir, keeping the source basename.
 async function convertToWav(srcPath, destDir) {
-  const wavPath = path.join(destDir, path.basename(srcPath).replace(/\.[^.\\/]+$/, ".wav"));
+  const wavPath = path.join(destDir, wavName(path.basename(srcPath)));
   if (fs.existsSync(wavPath)) {
     try {
       // Could be a stale partial from a cancelled run — rebuild fresh.
@@ -315,7 +291,7 @@ Max.addHandler("rip", async (rawUrl) => {
       Max.outlet("cancelled");
       return;
     }
-    Max.outlet("track", path.basename(audio).replace(/\.[^.]+$/, ""));
+    Max.outlet("track", stripExt(path.basename(audio)));
 
     // Move cover art into the final folder so its path is stable for display.
     if (art) {
@@ -380,18 +356,6 @@ function selfUpdateYtdlp() {
   }
 }
 selfUpdateYtdlp();
-
-// Compare dotted version strings. Returns true if `remote` is newer than
-// `local` (numeric, component-wise; missing components treated as 0).
-function isNewer(remote, local) {
-  const r = String(remote).split(".").map((n) => parseInt(n) || 0);
-  const l = String(local).split(".").map((n) => parseInt(n) || 0);
-  for (let i = 0; i < Math.max(r.length, l.length); i++) {
-    const a = r[i] || 0, b = l[i] || 0;
-    if (a !== b) return a > b;
-  }
-  return false;
-}
 
 // Fire-and-forget update check. Any failure (offline, placeholder URL still
 // set, malformed JSON) is swallowed — the device works regardless.
