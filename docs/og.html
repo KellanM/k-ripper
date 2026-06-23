@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>K-Ripper OG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #efece4; --paper-2: #e6e2d8; --card: #faf8f2;
+    --ink: #131210; --ink-soft: #524f47; --ink-faint: #8f8c81; --line: #d8d4c8;
+    --device: #0f0e13; --device-line: #2a2a35; --device-text: #eeeef1; --device-muted: #8b8b97;
+    --signal: #e8341c; --signal-deep: #bb2810; --ok: #58cf7a;
+    --display: "Bricolage Grotesque", sans-serif; --mono: "Space Mono", monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body { background: var(--paper); font-family: var(--display); color: var(--ink); display: flex; align-items: center; position: relative; }
+  .bg { position: absolute; inset: 0; opacity: 0.4; }
+  .bg svg { width: 100%; height: 100%; }
+  .row { position: relative; display: flex; align-items: center; width: 100%; padding: 0 70px; gap: 40px; }
+  .left { width: 600px; flex: 0 0 600px; }
+  .wm { display: flex; align-items: center; gap: 13px; font-weight: 700; font-size: 25px; letter-spacing: 0.05em; }
+  .wm .mk { width: 34px; height: 34px; background: var(--device); border-radius: 9px; display: grid; place-items: center; }
+  .wm .mk::after { content: ""; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 11px solid var(--signal); margin-left: 3px; }
+  h1 { font-weight: 800; font-size: 92px; line-height: 0.92; letter-spacing: -0.045em; margin: 38px 0 0; }
+  h1 em { font-style: normal; color: var(--signal); }
+  .sub { font-size: 25px; color: var(--ink-soft); line-height: 1.4; margin: 26px 0 0; max-width: 18ch; }
+  .icons { display: flex; gap: 14px; margin: 36px 0 0; align-items: center; }
+  .icons img { width: 30px; height: 30px; }
+  .tag { position: absolute; left: 70px; bottom: 46px; font-family: var(--mono); font-size: 19px; color: var(--ink-faint); letter-spacing: 0.02em; }
+  .tag b { color: var(--ink); font-weight: 700; }
+
+  .right { flex: 1; display: flex; justify-content: center; }
+  .device { width: 430px; background: linear-gradient(180deg,#18171f,#0e0d12); border: 1px solid var(--device-line); border-radius: 20px; padding: 24px;
+    box-shadow: 0 50px 80px -30px rgba(15,14,19,0.5), inset 0 1px 0 rgba(255,255,255,0.06); }
+  .d-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .d-name { color: var(--device-text); font-weight: 700; font-size: 19px; letter-spacing: 0.04em; }
+  .d-state { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px; color: var(--device-muted); }
+  .d-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); }
+  .d-rip { display: flex; gap: 11px; }
+  .d-url { flex: 1; height: 50px; background: #08080c; border: 1px solid var(--device-line); border-radius: 11px; display: flex; align-items: center; padding: 0 15px; font-family: var(--mono); font-size: 14px; color: var(--device-muted); overflow: hidden; white-space: nowrap; }
+  .d-btn { height: 50px; padding: 0 30px; border-radius: 11px; background: var(--signal); color: #fff; font-weight: 800; font-size: 17px; letter-spacing: 0.05em; display: grid; place-items: center; box-shadow: 0 0 28px -4px rgba(232,52,28,0.6); }
+  .scope { height: 104px; margin: 16px 0 0; border-radius: 13px; overflow: hidden; background: radial-gradient(120% 140% at 50% 0%, #14131a, #0a0a0e); border: 1px solid var(--device-line); position: relative; }
+  .scope svg { width: 100%; height: 100%; }
+  .slot { height: 44px; margin: 16px 0 0; border-radius: 9px; background: color-mix(in srgb, var(--signal) 16%, #0a0a0e); border: 1px solid color-mix(in srgb, var(--signal) 48%, var(--device-line)); display: flex; align-items: center; gap: 12px; padding: 0 14px; }
+  .slot .play { border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid var(--signal); }
+  .slot .cn { font-family: var(--mono); font-size: 14px; color: var(--device-text); }
+</style>
+</head>
+<body>
+  <div class="bg"><svg id="bgwave" viewBox="0 0 1200 630" preserveAspectRatio="none"></svg></div>
+  <div class="row">
+    <div class="left">
+      <div class="wm"><span class="mk"></span> K-RIPPER</div>
+      <h1>Rip audio <em>into</em> Ableton.</h1>
+      <p class="sub">A free Max for Live device. Paste a link, hit RIP.</p>
+      <div class="icons">
+        <img src="icons/sc.png"><img src="icons/yt.png"><img src="icons/bc.png"><img src="icons/mc.png"><img src="icons/tt.png"><img src="icons/tw.png"><img src="icons/vm.png"><img src="icons/rd.png">
+      </div>
+    </div>
+    <div class="right">
+      <div class="device">
+        <div class="d-top"><span class="d-name">K-RIPPER</span><span class="d-state"><span class="d-dot"></span> ✓ slot 1</span></div>
+        <div class="d-rip"><div class="d-url">soundcloud.com/lsdream/rave-cave</div><div class="d-btn">RIP</div></div>
+        <div class="scope"><svg id="scope" viewBox="0 0 400 104" preserveAspectRatio="none"></svg></div>
+        <div class="slot"><span class="play"></span><span class="cn">rave_cave_night_2.wav</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="tag"><b>Free</b> · open source · 8 sources · kellanm.github.io/k-ripper</div>
+<script>
+  // deterministic audio-like waveform paths (no animation, so the render is stable)
+  function wave(el, w, h, amp, density, glow) {
+    var pts = [];
+    for (var i = 0; i <= w; i += 2) {
+      var p = i / w, shape = 0.45 + 0.55 * Math.sin(p * Math.PI);
+      var v = Math.sin(p * density + 0.4) * 0.5 + Math.sin(p * density * 2.2 + 1.1) * 0.3
+            + Math.sin(p * density * 4.3 + 2.0) * 0.16 + Math.sin(p * density * 8 + 0.6) * 0.08;
+      pts.push(i + "," + (h / 2 + v * shape * amp).toFixed(1));
+    }
+    var ns = "http://www.w3.org/2000/svg";
+    var pl = document.createElementNS(ns, "polyline");
+    pl.setAttribute("points", pts.join(" "));
+    pl.setAttribute("fill", "none");
+    pl.setAttribute("stroke", glow ? "#e8341c" : "rgba(232,52,28,0.5)");
+    pl.setAttribute("stroke-width", glow ? "2.4" : "3");
+    pl.setAttribute("stroke-linejoin", "round");
+    if (glow) pl.setAttribute("filter", "drop-shadow(0 0 6px rgba(232,52,28,0.85))");
+    el.appendChild(pl);
+  }
+  wave(document.getElementById("scope"), 400, 104, 32, 26, true);
+  wave(document.getElementById("bgwave"), 1200, 630, 150, 26, false);
+</script>
+</body>
+</html>
