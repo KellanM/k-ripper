@@ -51,7 +51,7 @@ fi
 echo "      $USER_LIB"
 
 # Verify bundled files
-for f in K-Ripper.amxd kripper.js kripper.mjs package.json bin/yt-dlp bin/ffmpeg-x64 bin/ffmpeg-arm64; do
+for f in K-Ripper.amxd kripper.js kripper.mjs lib.mjs package.json bin/yt-dlp bin/ffmpeg-x64 bin/ffmpeg-arm64; do
   if [ ! -f "$SRC/$f" ]; then
     echo -e "${RED}ERROR:${NC} Missing: $SRC/$f"
     echo "      The zip may not have extracted completely — re-extract and retry."
@@ -68,6 +68,7 @@ mkdir -p "$DEST"
 cp "$SRC/K-Ripper.amxd" "$DEST/"
 cp "$SRC/kripper.js" "$DEST/"
 cp "$SRC/kripper.mjs" "$DEST/"
+cp "$SRC/lib.mjs" "$DEST/"
 cp "$SRC/package.json" "$DEST/"
 
 rm -rf "$DEST/bin"

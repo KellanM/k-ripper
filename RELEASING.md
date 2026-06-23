@@ -1,5 +1,15 @@
 # Releasing K-Ripper
 
+## Tests
+
+Run before cutting a release (CI also runs them on every push/PR):
+
+```bash
+node --test            # unit tests for the engine logic (kripper/lib.mjs)
+KRIPPER_NET=1 node --test   # + source-rot integration check (hits the network)
+```
+
+
 Every release ships two installers and updates the version manifest so
 installed devices notice the update.
 
@@ -24,7 +34,7 @@ Then mirror the cross-platform device files into the Mac bundle and build:
 python kripper/make_amxd.py kripper/K-Ripper.maxpat kripper/K-Ripper.amxd audio_effect
 
 # mirror device + scripts into the Mac bundle (everything except bin/)
-cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs \
+cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/lib.mjs \
    kripper/package.json kripper/LICENSES.txt kripper-mac/
 cp -r kripper/assets kripper-mac/
 

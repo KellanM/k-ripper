@@ -44,6 +44,7 @@ Source: "..\kripper\K-Ripper.amxd";         DestDir: "{app}";        Flags: igno
 Source: "..\kripper\LICENSES.txt";          DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.js";            DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.mjs";           DestDir: "{app}";        Flags: ignoreversion
+Source: "..\kripper\lib.mjs";               DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\package.json";          DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\bin\yt-dlp.exe";        DestDir: "{app}\bin";    Flags: ignoreversion
 Source: "..\kripper\bin\ffmpeg.exe";        DestDir: "{app}\bin";    Flags: ignoreversion
