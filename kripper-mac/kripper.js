@@ -9,6 +9,7 @@
 //   status <symbol>   status text from engine
 //   track <symbol>    resolved track name from engine
 //   source <symbol>   URL actually being ripped (lights the platform icon)
+//   bpm <symbol>      detected tempo (int, or "none") -> labels the clip
 //   done <symbol>     final file path from engine -> load into clip
 //   cancelled         rip aborted by user
 //   reset             engine (re)started -> snap UI to idle
@@ -30,6 +31,8 @@ outlets = 1;
 
 var currentUrl = "";
 var ripping = false;
+var lastTrack = "";  // resolved track name from engine, for the clip label
+var lastBpm = 0;     // detected tempo for this rip (0 = unknown)
 
 var IDLE_TEXT = "ready";
 var MAX_STATUS_CHARS = 34; // what fits in the bbox; full text goes to console
@@ -151,6 +154,8 @@ function rip() {
     ripping = true;
     setButton("CANCEL");
     setTrack("");
+    lastTrack = "";
+    lastBpm = 0;
     resetIcons();
     var a = named("kr_art");
     if (a) a.message("hidden", 1);
@@ -179,7 +184,14 @@ function progress(pct) {
 }
 
 function track() {
-    setTrack(Array.prototype.slice.call(arguments).join(" "));
+    lastTrack = Array.prototype.slice.call(arguments).join(" ");
+    setTrack(lastTrack);
+}
+
+// Detected tempo from the engine, sent just before `done`. "none" -> unknown.
+function bpm(v) {
+    var s = String(v);
+    lastBpm = (s === "none") ? 0 : (parseInt(s, 10) || 0);
 }
 
 function art() {
@@ -264,12 +276,16 @@ function loadIntoParentTrack(filePath) {
             var hasClip = slot.get("has_clip");
             if (hasClip && hasClip[0] == 0) {
                 slot.call("create_audio_clip", filePath);
-                // Disable warp so songs play at native tempo.
+                // Disable warp so songs play at native tempo, and label the clip
+                // with its detected BPM so it's easy to match the project to.
                 try {
                     var clip = new LiveAPI(null, trackPath + " clip_slots " + i + " clip");
                     clip.set("warping", 0);
+                    if (lastBpm > 0 && lastTrack) {
+                        clip.set("name", lastTrack + " · " + lastBpm + " BPM");
+                    }
                 } catch (e) {}
-                setStatus("✓ slot " + (i + 1));
+                setStatus("✓ slot " + (i + 1) + (lastBpm > 0 ? " · " + lastBpm + " BPM" : ""));
                 setDot(DOT_OK);
                 return;
             }

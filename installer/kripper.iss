@@ -7,7 +7,7 @@
 ; admin rights required.
 
 #define MyAppName "K-Ripper"
-#define MyAppVersion "0.3.3"
+#define MyAppVersion "0.4.0"
 #define MyAppPublisher "K-Ripper"
 #define MyAppURL "https://github.com/"
 
@@ -45,6 +45,7 @@ Source: "..\kripper\LICENSES.txt";          DestDir: "{app}";        Flags: igno
 Source: "..\kripper\kripper.js";            DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.mjs";           DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\lib.mjs";               DestDir: "{app}";        Flags: ignoreversion
+Source: "..\kripper\vendor\*";              DestDir: "{app}\vendor"; Flags: ignoreversion recursesubdirs
 Source: "..\kripper\package.json";          DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\bin\yt-dlp.exe";        DestDir: "{app}\bin";    Flags: ignoreversion
 Source: "..\kripper\bin\ffmpeg.exe";        DestDir: "{app}\bin";    Flags: ignoreversion
@@ -59,6 +60,7 @@ Filename: "{app}"; Verb: open; Flags: shellexec postinstall skipifsilent; Descri
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\bin"
 Type: filesandordirs; Name: "{app}\assets"
+Type: filesandordirs; Name: "{app}\vendor"
 
 [Code]
 function GetUserLibraryPath(Param: String): String;

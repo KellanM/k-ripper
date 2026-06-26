@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import {
   extractUrl, pickAudio, pickArt, stripExt, wavName,
   parseProgress, classifyError, isNewer, AUDIO_EXT,
+  ffmpegAnalysisArgs, foldOctave, finalizeBpm, formatClipName,
 } from "../kripper/lib.mjs";
 
 test("extractUrl: plain url", () => {
@@ -116,4 +117,55 @@ test("isNewer: version comparison incl. the 0.3.10 vs 0.3.2 trap", () => {
   assert.equal(isNewer("0.3.2", "0.3.10"), false);
   assert.equal(isNewer("0.4", "0.3.9"), true);       // missing component = 0
   assert.equal(isNewer("1.0.0", "0.9.9"), true);
+});
+
+// ---- tempo (BPM) detection helpers ------------------------------------
+
+test("ffmpegAnalysisArgs: locks 44.1kHz mono f32 — the rate must NOT be lowered", () => {
+  // music-tempo assumes 44100; a lower rate octave-shifts the result (a 90 BPM
+  // track read as 180 at 22.05kHz). This test guards that regression.
+  const args = ffmpegAnalysisArgs("/tmp/x.wav");
+  assert.deepEqual(args, [
+    "-v", "error", "-t", "150", "-i", "/tmp/x.wav",
+    "-ac", "1", "-ar", "44100", "-f", "f32le", "-",
+  ]);
+  // window length is configurable, rate/channels stay fixed
+  const short = ffmpegAnalysisArgs("a.wav", 60);
+  assert.equal(short[3], "60");
+  assert.equal(short[short.indexOf("-ar") + 1], "44100");
+  assert.equal(short[short.indexOf("-ac") + 1], "1");
+});
+
+test("foldOctave: keeps common electronic tempos intact", () => {
+  for (const bpm of [90, 124, 128, 132, 140, 174]) {
+    assert.equal(foldOctave(bpm), bpm); // all already inside [70,180)
+  }
+});
+
+test("foldOctave: pulls octave-error outliers back into the musical band", () => {
+  assert.equal(foldOctave(35), 70);   // half-time doubled up
+  assert.equal(foldOctave(200), 100); // double-time halved down
+  assert.equal(foldOctave(60), 120);
+  assert.equal(foldOctave(180), 90);  // hi bound is exclusive
+});
+
+test("foldOctave / finalizeBpm: junk input -> null", () => {
+  for (const bad of [0, -5, NaN, Infinity, null, undefined, "x"]) {
+    assert.equal(foldOctave(bad), null);
+    assert.equal(finalizeBpm(bad), null);
+  }
+});
+
+test("finalizeBpm: folds then rounds to an integer", () => {
+  assert.equal(finalizeBpm(127.6), 128);
+  assert.equal(finalizeBpm(174.2), 174);
+  assert.equal(finalizeBpm(63.4), 127); // 63.4*2 = 126.8 -> 127
+});
+
+test("formatClipName: appends BPM, degrades gracefully", () => {
+  assert.equal(formatClipName("Artist - Title", 128), "Artist - Title · 128 BPM");
+  assert.equal(formatClipName("Artist - Title", 127.6), "Artist - Title · 128 BPM");
+  assert.equal(formatClipName("Artist - Title", null), "Artist - Title"); // unknown tempo
+  assert.equal(formatClipName("Artist - Title", 0), "Artist - Title");
+  assert.equal(formatClipName("", 128), "128 BPM"); // no name, still useful
 });

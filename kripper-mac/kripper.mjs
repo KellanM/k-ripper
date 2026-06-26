@@ -10,6 +10,7 @@
 //   track <name>        resolved track name, as soon as it's known
 //   art <absPath>       cover art JPG, once downloaded
 //   source <url>        the URL actually being ripped (for icon highlight)
+//   bpm <int|none>      detected tempo, sent just before `done` (none = unknown)
 //   done <absPath>      final WAV path to load into a clip slot
 //   cancelled           rip aborted by the user (not an error)
 //   error <text>        short, friendly failure reason (full detail in console)
@@ -20,10 +21,24 @@ import Max from "max-api";
 import { spawn, exec } from "child_process";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { AUDIO_EXT, extractUrl, pickAudio, pickArt, stripExt, wavName, parseProgress, classifyError, isNewer } from "./lib.mjs";
+import { AUDIO_EXT, extractUrl, pickAudio, pickArt, stripExt, wavName, parseProgress, classifyError, isNewer, ffmpegAnalysisArgs, finalizeBpm } from "./lib.mjs";
+
+// music-tempo is a CommonJS module vendored under ./vendor (no npm install at
+// runtime — the device ships self-contained). createRequire lets this ESM
+// engine pull it in.
+const require = createRequire(import.meta.url);
+let MusicTempo = null;
+try {
+  MusicTempo = require("./vendor/music-tempo/MusicTempo.js");
+} catch (e) {
+  // Tempo detection is a nice-to-have; a missing/broken vendor dir must never
+  // stop the device from ripping. Rips just won't carry a BPM label.
+  Max.post(`[k-ripper] tempo detection unavailable: ${e && e.message ? e.message : e}`);
+}
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +71,7 @@ const YTDLP_TIMEOUT_MS = 30 * 60 * 1000; // 30 min — covers multi-hour DJ sets
 const FFMPEG_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Build version. Bump this together with the installer's MyAppVersion.
-const KRIPPER_VERSION = "0.3.3";
+const KRIPPER_VERSION = "0.4.0";
 
 // Update check: on load, the device fetches a tiny JSON manifest and, if a
 // newer version is published, nudges the user in the status line. This is how
@@ -250,6 +265,52 @@ async function convertToWav(srcPath, destDir) {
   return wavPath;
 }
 
+// Decode a window of the finished WAV to mono 44.1kHz float PCM and run tempo
+// detection on it. Best-effort: any failure (no analyzer, decode error, too
+// little audio, no confident tempo) resolves to null so the rip still
+// completes — the clip just won't carry a BPM label. Never throws.
+function detectBpm(wavPath) {
+  return new Promise((resolve) => {
+    if (!MusicTempo) { resolve(null); return; }
+    const args = ffmpegAnalysisArgs(wavPath);
+    let child;
+    try {
+      child = spawn(FFMPEG, args, { windowsHide: true, detached: process.platform !== "win32" });
+    } catch { resolve(null); return; }
+    currentChild = child;
+
+    const chunks = [];
+    let bytes = 0;
+    let done = false;
+    const finish = (val) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (currentChild === child) currentChild = null;
+      resolve(val);
+    };
+    // Hard ceiling so a pathological decode can't wedge the device.
+    const timer = setTimeout(() => { killTree(child); finish(null); }, 60 * 1000);
+
+    child.stdout.on("data", (b) => { chunks.push(b); bytes += b.length; });
+    child.stderr.on("data", () => {});
+    child.on("error", () => finish(null));
+    child.on("close", () => {
+      // Need a few seconds of audio to trust a tempo at all.
+      if (bytes < 44100 * 4 * 5) { finish(null); return; }
+      try {
+        const buf = Buffer.concat(chunks, bytes);
+        const samples = new Float32Array(buf.buffer, buf.byteOffset, Math.floor(buf.length / 4));
+        const mt = new MusicTempo(Array.from(samples));
+        finish(finalizeBpm(mt && mt.tempo));
+      } catch (e) {
+        Max.post(`[k-ripper] tempo analysis failed: ${e && e.message ? e.message : e}`);
+        finish(null);
+      }
+    });
+  });
+}
+
 const STAGE_DIR = path.join(DOWNLOADS, ".staging");
 
 Max.addHandler("rip", async (rawUrl) => {
@@ -308,6 +369,16 @@ Max.addHandler("rip", async (rawUrl) => {
       Max.outlet("cancelled");
       return;
     }
+
+    // Detect tempo so the clip lands labeled with its BPM. Best-effort and
+    // quick (~1-2s); never blocks the result — on failure bpm is just "none".
+    Max.outlet("status", "analyzing tempo...");
+    const bpm = await detectBpm(outPath);
+    if (cancelRequested) {
+      Max.outlet("cancelled");
+      return;
+    }
+    Max.outlet("bpm", bpm == null ? "none" : bpm);
 
     Max.outlet("done", path.resolve(outPath));
   } catch (e) {

@@ -63,6 +63,60 @@ export function classifyError(raw) {
   return msg.replace(/^ERROR:\s*(\[[^\]]*\]\s*)?([\w-]+:\s*)?/, "").slice(0, 60);
 }
 
+// ---- tempo (BPM) detection helpers ------------------------------------
+//
+// The engine decodes a window of the finished WAV to mono 44.1kHz float PCM and
+// hands it to the bundled `music-tempo` (Beatroot algorithm). These pure helpers
+// build the ffmpeg args and post-process the raw tempo — the parts worth testing
+// without spawning ffmpeg or pulling in the analyzer.
+
+// ffmpeg args to decode an analysis window to raw mono f32 PCM on stdout.
+// music-tempo hardcodes a 44.1kHz assumption — feeding any other sample rate
+// throws the BPM off by an octave (validated: a 90 BPM track read as 180 at
+// 22.05kHz), so the rate is fixed at 44100 and must not be "optimized" lower.
+// We cap the window (default 150s) so memory + analysis time stay bounded on
+// multi-hour DJ sets; no seek, so short tracks still yield samples.
+export function ffmpegAnalysisArgs(wavPath, seconds = 150, sampleRate = 44100) {
+  return [
+    "-v", "error",
+    "-t", String(seconds),
+    "-i", String(wavPath),
+    "-ac", "1",
+    "-ar", String(sampleRate),
+    "-f", "f32le",
+    "-",
+  ];
+}
+
+// Fold a raw tempo into a musical band to tame octave errors — every detector
+// (music-tempo, aubio, all of them) periodically reports half/double the true
+// tempo. [70,180) keeps the common electronic range intact (house 124, techno
+// 132, trance 140, DnB 174) while pulling a stray 35 up to 70 or 200 down to
+// 100. Returns null for non-finite / non-positive input.
+export function foldOctave(bpm, lo = 70, hi = 180) {
+  let b = Number(bpm);
+  if (!isFinite(b) || b <= 0) return null;
+  while (b < lo) b *= 2;
+  while (b >= hi) b /= 2;
+  return b;
+}
+
+// Turn a raw detected tempo into the integer BPM shown on the clip, or null if
+// detection produced nothing usable.
+export function finalizeBpm(rawTempo, lo = 70, hi = 180) {
+  const folded = foldOctave(rawTempo, lo, hi);
+  return folded == null ? null : Math.round(folded);
+}
+
+// Clip name with the detected tempo appended (or just the base name when BPM is
+// unknown). Mirrored in kripper.js for the Max-side clip rename.
+export function formatClipName(base, bpm) {
+  const name = String(base == null ? "" : base).trim();
+  const n = Number(bpm);
+  if (bpm == null || !isFinite(n) || n <= 0) return name;
+  return name ? `${name} · ${Math.round(n)} BPM` : `${Math.round(n)} BPM`;
+}
+
 // True if dotted version `remote` is newer than `local` (numeric, component-wise;
 // missing components are 0, so "0.4" > "0.3.9" and "0.3.10" > "0.3.2").
 export function isNewer(remote, local) {

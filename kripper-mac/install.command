@@ -51,7 +51,7 @@ fi
 echo "      $USER_LIB"
 
 # Verify bundled files
-for f in K-Ripper.amxd kripper.js kripper.mjs lib.mjs package.json bin/yt-dlp bin/ffmpeg-x64 bin/ffmpeg-arm64; do
+for f in K-Ripper.amxd kripper.js kripper.mjs lib.mjs package.json vendor/music-tempo/MusicTempo.js bin/yt-dlp bin/ffmpeg-x64 bin/ffmpeg-arm64; do
   if [ ! -f "$SRC/$f" ]; then
     echo -e "${RED}ERROR:${NC} Missing: $SRC/$f"
     echo "      The zip may not have extracted completely — re-extract and retry."
@@ -75,6 +75,8 @@ rm -rf "$DEST/bin"
 cp -R "$SRC/bin" "$DEST/"
 rm -rf "$DEST/assets"
 cp -R "$SRC/assets" "$DEST/"
+rm -rf "$DEST/vendor"
+cp -R "$SRC/vendor" "$DEST/"
 
 # Make binaries executable and strip macOS Gatekeeper quarantine flags from
 # everything we installed (recursive — covers binaries, scripts, assets).
