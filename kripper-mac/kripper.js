@@ -250,6 +250,50 @@ function done() {
     loadIntoParentTrack(p);
 }
 
+// Read a LiveAPI property that may come back as a bare value or a 1+ element
+// array, and coerce to a Number.
+function apiNum(v) {
+    if (v == null) return NaN;
+    if (typeof v !== "string" && v.length !== undefined) return Number(v[v.length - 1]);
+    return Number(v);
+}
+
+// Make the clip's Seg.BPM field read the detected tempo while keeping Warp OFF
+// for native playback. Verified behavior: enabling warp, adding a single warp
+// marker that defines a uniform tempo, then disabling warp leaves the clip
+// playing natively AND displaying the marker-derived BPM. Best-effort — never
+// alters the audio, always ends with warp off.
+function applyDetectedTempo(clip, bpm) {
+    var sampleLength = apiNum(clip.get("sample_length"));
+    var sampleRate   = apiNum(clip.get("sample_rate"));
+    if (!(sampleLength > 0) || !(sampleRate > 0)) {
+        clip.set("warping", 0);   // no sample info — just leave it native
+        return;
+    }
+
+    clip.set("warping", 1);                          // markers require warp on
+    try { clip.set("warp_mode", 6); } catch (e) {}   // Complex Pro = least artifacts
+
+    // One marker at (st, st*bpm/60) makes the whole segment back to the start
+    // marker (0,0) play at exactly `bpm`. Anchor near the END so the uniform
+    // tempo spans the full clip (Live drops a tiny trailing "shadow" segment of
+    // its own just past it). Mid-anchor fallback for sub-second samples.
+    var durSec = sampleLength / sampleRate;
+    var st = durSec > 1.0 ? (durSec - 0.25) : (durSec * 0.5);
+    var bt = st * bpm / 60.0;
+
+    try {
+        var d = new Dict();
+        d.set("beat_time", bt);
+        d.set("sample_time", st);
+        clip.call("add_warp_marker", d);
+    } catch (e) {
+        post("[k-ripper] could not set clip tempo: " + (e && e.message ? e.message : e) + "\n");
+    }
+
+    clip.set("warping", 0);                          // back to native playback
+}
+
 function loadIntoParentTrack(filePath) {
     try {
         var device = new LiveAPI(null, "this_device");
@@ -276,15 +320,24 @@ function loadIntoParentTrack(filePath) {
             var hasClip = slot.get("has_clip");
             if (hasClip && hasClip[0] == 0) {
                 slot.call("create_audio_clip", filePath);
-                // Disable warp so songs play at native tempo, and label the clip
-                // with its detected BPM so it's easy to match the project to.
                 try {
                     var clip = new LiveAPI(null, trackPath + " clip_slots " + i + " clip");
-                    clip.set("warping", 0);
+                    // Experimental: try to make the Seg.BPM field show the real
+                    // tempo while keeping native playback. Falls back to plain
+                    // warp-off if there's no BPM. Always ends with warp OFF.
+                    if (lastBpm > 0) {
+                        applyDetectedTempo(clip, lastBpm);
+                    } else {
+                        clip.set("warping", 0);
+                    }
+                    // Label the clip with its detected BPM regardless (reliable
+                    // surface even if the Seg.BPM field can't be updated).
                     if (lastBpm > 0 && lastTrack) {
                         clip.set("name", lastTrack + " · " + lastBpm + " BPM");
                     }
-                } catch (e) {}
+                } catch (e) {
+                    post("[k-ripper] clip setup error: " + (e && e.message ? e.message : e) + "\n");
+                }
                 setStatus("✓ slot " + (i + 1) + (lastBpm > 0 ? " · " + lastBpm + " BPM" : ""));
                 setDot(DOT_OK);
                 return;
