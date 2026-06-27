@@ -28,7 +28,12 @@ OutputBaseFilename=K-Ripper-Windows-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+; Branded installer art (matches k-ripper.app). Two sizes each → Setup picks by DPI.
+SetupIconFile=art\kripper.ico
+WizardImageFile=art\wizard-164.bmp,art\wizard-328.bmp
+WizardSmallImageFile=art\small-55.bmp,art\small-110.bmp
 UninstallDisplayName=K-Ripper for Ableton Live
+UninstallDisplayIcon={app}\kripper.ico
 DisableReadyPage=no
 UsePreviousAppDir=yes
 AppendDefaultDirName=no
@@ -42,6 +47,7 @@ FinishedLabel=K-Ripper has been installed into your Ableton User Library.%n%nIn 
 [Files]
 Source: "..\kripper\K-Ripper.amxd";         DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\LICENSES.txt";          DestDir: "{app}";        Flags: ignoreversion
+Source: "art\kripper.ico";                  DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.js";            DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.mjs";           DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\lib.mjs";               DestDir: "{app}";        Flags: ignoreversion
