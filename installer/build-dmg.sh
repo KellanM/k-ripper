@@ -42,7 +42,9 @@ tiffutil -cathidpicheck "$ART/dmg-bg.png" "$ART/dmg-bg@2x.png" -out "$STAGING/.b
 
 # --- create a writable image, mount, and dress it up -------------------------
 SIZE_MB=$(( $(du -sm "$STAGING" | cut -f1) + 40 ))
-hdiutil create -size ${SIZE_MB}m -fs HFS+ -volname "$VOLNAME" -format UDRW -ov "$TMPDMG" >/dev/null
+# A size-based create makes a read/write (UDRW) image by default; passing
+# -format here would (confusingly) demand a -srcfolder, so we omit it.
+hdiutil create -size ${SIZE_MB}m -fs HFS+ -volname "$VOLNAME" -ov "$TMPDMG" >/dev/null
 
 DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "$TMPDMG" | egrep '^/dev/' | sed 1q | awk '{print $1}')
 VOL="/Volumes/$VOLNAME"
