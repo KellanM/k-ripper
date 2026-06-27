@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dmg background</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --signal: #e8341c; --device-text: #eeeef1; --device-muted: #8b8b97; --device-line: #2a2a35;
+    --display: "Bricolage Grotesque", sans-serif; --mono: "Space Mono", monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 2x of a 600x420 DMG window for retina; build-dmg.sh pairs it with a 1x copy. */
+  html, body { width: 1200px; height: 840px; overflow: hidden; }
+  body { font-family: var(--display); color: var(--device-text);
+    background: radial-gradient(120% 90% at 22% 0%, #1a1922, #0c0b10 72%);
+    position: relative; }
+  .bg { position: absolute; inset: 0; opacity: 0.5; }
+  .bg svg { width: 100%; height: 100%; }
+  .edge { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--signal); box-shadow: 0 0 32px 3px rgba(232,52,28,0.5); }
+
+  .wm { position: absolute; left: 80px; top: 76px; display: flex; align-items: center; gap: 18px; }
+  .wm .mk { width: 64px; height: 64px; background: #08080c; border: 1px solid var(--device-line); border-radius: 16px; display: grid; place-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+  .wm .mk::after { content: ""; border-top: 13px solid transparent; border-bottom: 13px solid transparent; border-left: 21px solid var(--signal); margin-left: 5px; filter: drop-shadow(0 0 7px rgba(232,52,28,0.8)); }
+  .wm .wd { font-weight: 800; font-size: 38px; letter-spacing: 0.04em; }
+
+  .copy { position: absolute; left: 80px; top: 300px; width: 520px; }
+  .copy h1 { font-weight: 800; font-size: 58px; line-height: 1.0; letter-spacing: -0.03em; }
+  .copy h1 em { font-style: normal; color: var(--signal); }
+  .copy p { font-family: var(--mono); font-size: 23px; color: var(--device-muted); margin-top: 22px; line-height: 1.5; }
+  .copy p b { color: var(--device-text); }
+  .copy .note { font-size: 16px; color: #6a6873; margin-top: 26px; }
+  .copy .note b { color: var(--device-muted); font-weight: 400; }
+
+  /* Arrow toward the install.command icon (it sits on the right side). */
+  .arrow { position: absolute; left: 612px; top: 372px; display: flex; align-items: center; gap: 14px; }
+  .arrow .line { width: 150px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, rgba(232,52,28,0.15), var(--signal)); }
+  .arrow .head { border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-left: 26px solid var(--signal); filter: drop-shadow(0 0 8px rgba(232,52,28,0.7)); }
+
+  /* Target ring where Finder places the install.command icon (~ x=860,y=390 @2x). */
+  .target { position: absolute; left: 792px; top: 300px; width: 200px; height: 200px; border-radius: 50%;
+    border: 2px dashed rgba(232,52,28,0.45); display: grid; place-items: center; }
+  .target span { font-family: var(--mono); font-size: 16px; color: var(--device-muted); position: absolute; bottom: -34px; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="bg"><svg id="bg" viewBox="0 0 1200 840" preserveAspectRatio="none"></svg></div>
+  <div class="edge"></div>
+  <div class="wm"><span class="mk"></span><span class="wd">K-RIPPER</span></div>
+  <div class="copy">
+    <h1>Install <em>K-Ripper</em></h1>
+    <p>Double-click <b>install.command</b> to add it to your Ableton User Library.</p>
+    <p class="note">First launch: if macOS blocks it, <b>right-click → Open</b>.</p>
+  </div>
+  <div class="arrow"><span class="line"></span><span class="head"></span></div>
+  <div class="target"><span>install.command</span></div>
+<script>
+  function wave(el, w, h, amp, density) {
+    var pts = [];
+    for (var i = 0; i <= w; i += 1) {
+      var p = i / w, shape = 0.45 + 0.55 * Math.sin(p * Math.PI);
+      var v = Math.sin(p * density + 0.4) * 0.5 + Math.sin(p * density * 2.2 + 1.1) * 0.3
+            + Math.sin(p * density * 4.3 + 2.0) * 0.16 + Math.sin(p * density * 8 + 0.6) * 0.08;
+      pts.push(i + "," + (h / 2 + v * shape * amp).toFixed(1));
+    }
+    var ns = "http://www.w3.org/2000/svg";
+    var pl = document.createElementNS(ns, "polyline");
+    pl.setAttribute("points", pts.join(" "));
+    pl.setAttribute("fill", "none");
+    pl.setAttribute("stroke", "rgba(232,52,28,0.4)");
+    pl.setAttribute("stroke-width", "2.4");
+    pl.setAttribute("stroke-linejoin", "round");
+    el.appendChild(pl);
+  }
+  wave(document.getElementById("bg"), 1200, 840, 150, 30);
+</script>
+</body>
+</html>

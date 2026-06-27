@@ -36,7 +36,8 @@ python kripper/make_amxd.py kripper/K-Ripper.maxpat kripper/K-Ripper.amxd audio_
 # mirror device + scripts into the Mac bundle (everything except bin/)
 cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/lib.mjs \
    kripper/package.json kripper/LICENSES.txt kripper-mac/
-cp -r kripper/assets kripper-mac/
+rm -rf kripper-mac/assets kripper-mac/vendor
+cp -r kripper/assets kripper/vendor kripper-mac/   # vendor = music-tempo + pitch-detection
 
 # Windows installer (Inno Setup)
 "$LOCALAPPDATA/Programs/Inno Setup 6/ISCC.exe" installer/kripper.iss
@@ -54,6 +55,7 @@ git tag v0.3.2
 git push origin v0.3.2
 gh release create v0.3.2 \
   dist/K-Ripper-Windows-Setup.exe \
+  dist/K-Ripper-macOS.dmg \
   dist/K-Ripper-macOS.zip \
   --title "K-Ripper v0.3.2" --notes "..."
 ```

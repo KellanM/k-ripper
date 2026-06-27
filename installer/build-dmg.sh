@@ -1,76 +1,98 @@
 #!/bin/bash
-# Build K-Ripper.dmg from kripper-mac/.
-# RUNS ON macOS ONLY (uses hdiutil).
+# Build a branded K-Ripper.dmg from kripper-mac/.
+# RUNS ON macOS ONLY (uses hdiutil / Finder AppleScript / SetFile).
 #
-# Output: ../dist/K-Ripper.dmg
+# Produces a DMG whose window shows a branded background (installer/art/) with
+# only install.command visible — all support files are flagged hidden — plus a
+# custom volume icon. Output: ../dist/K-Ripper-macOS.dmg
 
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 SRC="$PROJECT_ROOT/kripper-mac"
+ART="$SCRIPT_DIR/art"
 DIST="$PROJECT_ROOT/dist"
+VOLNAME="K-Ripper"
+OUT="$DIST/K-Ripper-macOS.dmg"
 
 if [ "$(uname)" != "Darwin" ]; then
-    echo "ERROR: This script must run on macOS (hdiutil is macOS-only)."
+    echo "ERROR: This script must run on macOS (hdiutil/Finder are macOS-only)."
     exit 1
 fi
-
-if [ ! -d "$SRC" ]; then
-    echo "ERROR: $SRC not found"
-    exit 1
-fi
-
-if [ ! -f "$SRC/bin/yt-dlp" ] || [ ! -f "$SRC/bin/ffmpeg-x64" ] || [ ! -f "$SRC/bin/ffmpeg-arm64" ]; then
-    echo "ERROR: macOS binaries missing in $SRC/bin/ (need yt-dlp, ffmpeg-x64, ffmpeg-arm64)"
-    exit 1
-fi
+for f in "$SRC/install.command" "$SRC/bin/yt-dlp" "$SRC/bin/ffmpeg-x64" "$SRC/bin/ffmpeg-arm64"; do
+    [ -f "$f" ] || { echo "ERROR: missing $f"; exit 1; }
+done
+for a in dmg-bg.png dmg-bg@2x.png kripper.icns; do
+    [ -f "$ART/$a" ] || { echo "ERROR: missing art $ART/$a"; exit 1; }
+done
 
 mkdir -p "$DIST"
 
-# Stage the dmg contents in a temp folder
+# --- stage the bundle --------------------------------------------------------
 STAGING=$(mktemp -d)
-trap "rm -rf $STAGING" EXIT
+TMPDMG=$(mktemp -u).dmg
+trap 'rm -rf "$STAGING" "$TMPDMG"' EXIT
 
 cp -R "$SRC/"* "$STAGING/"
+chmod +x "$STAGING/install.command" "$STAGING/bin/yt-dlp" "$STAGING/bin/ffmpeg-x64" "$STAGING/bin/ffmpeg-arm64"
 
-# Make install.command and binaries executable
-chmod +x "$STAGING/install.command"
-chmod +x "$STAGING/bin/yt-dlp"
-chmod +x "$STAGING/bin/ffmpeg-x64"
-chmod +x "$STAGING/bin/ffmpeg-arm64"
+# Retina-aware background: combine 1x + 2x into a single multi-rep TIFF.
+tiffutil -cathidpicheck "$ART/dmg-bg.png" "$ART/dmg-bg@2x.png" -out "$STAGING/.bg.tiff"
 
-# Add a README so users know what to do
-cat > "$STAGING/README.txt" <<'EOF'
-K-Ripper for Ableton Live (macOS)
-==================================
+# --- create a writable image, mount, and dress it up -------------------------
+SIZE_MB=$(( $(du -sm "$STAGING" | cut -f1) + 40 ))
+hdiutil create -size ${SIZE_MB}m -fs HFS+ -volname "$VOLNAME" -format UDRW -ov "$TMPDMG" >/dev/null
 
-To install:
+DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "$TMPDMG" | egrep '^/dev/' | sed 1q | awk '{print $1}')
+VOL="/Volumes/$VOLNAME"
+# settle the mount
+sleep 2
 
-  Open Terminal and run:
-    bash "/Volumes/K-Ripper/install.command"
+ditto "$STAGING/" "$VOL/"
 
-  (or drag install.command onto a Terminal window)
+# Volume icon (custom-icon bit on the volume root).
+cp "$ART/kripper.icns" "$VOL/.VolumeIcon.icns"
+SetFile -a C "$VOL"
 
-That's it. K-Ripper will be added to your Ableton User Library at:
-  ~/Music/Ableton/User Library/Presets/Audio Effects/Max Audio Effect/K-Ripper
+# Background folder.
+mkdir -p "$VOL/.background"
+mv "$VOL/.bg.tiff" "$VOL/.background/bg.tiff"
 
-After installation:
-  1. Open Ableton Live (restart if it was running)
-  2. Browser -> User Library -> Audio Effects -> Max Audio Effect -> K-Ripper
-  3. Drag K-Ripper onto any audio track
-  4. Copy a track URL, click RIP
+# Hide everything except install.command so the window is clean.
+for item in "$VOL"/*; do
+    name="$(basename "$item")"
+    [ "$name" = "install.command" ] && continue
+    chflags hidden "$item" 2>/dev/null || true
+done
 
-Requirements: Ableton Live 11 or 12 with Max for Live (Suite).
-EOF
+# Finder window layout: 600x420, single icon over the background's arrow target.
+osascript <<OSA
+tell application "Finder"
+  tell disk "$VOLNAME"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {200, 120, 800, 540}
+    set theViewOptions to the icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 110
+    set background picture of theViewOptions to file ".background:bg.tiff"
+    set position of item "install.command" of container window to {446, 200}
+    update without registering applications
+    delay 1
+    close
+  end tell
+end tell
+OSA
 
-# Build the dmg
-OUT="$DIST/K-Ripper.dmg"
+sync
+hdiutil detach "$DEVICE" >/dev/null
+
+# --- finalize: compress to a read-only distributable image -------------------
 rm -f "$OUT"
-hdiutil create -volname "K-Ripper" \
-  -srcfolder "$STAGING" \
-  -ov -format UDZO \
-  "$OUT"
+hdiutil convert "$TMPDMG" -format UDZO -imagekey zlib-level=9 -o "$OUT" >/dev/null
 
 SIZE=$(du -m "$OUT" | cut -f1)
 echo "Built: $OUT (${SIZE} MB)"
