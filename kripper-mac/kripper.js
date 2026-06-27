@@ -10,6 +10,7 @@
 //   track <symbol>    resolved track name from engine
 //   source <symbol>   URL actually being ripped (lights the platform icon)
 //   bpm <symbol>      detected tempo (int, or "none") -> labels the clip
+//   key <camelot> <label>  detected key, e.g. "8A Am" (or "none") -> labels clip
 //   done <symbol>     final file path from engine -> load into clip
 //   cancelled         rip aborted by user
 //   reset             engine (re)started -> snap UI to idle
@@ -31,8 +32,10 @@ outlets = 1;
 
 var currentUrl = "";
 var ripping = false;
-var lastTrack = "";  // resolved track name from engine, for the clip label
-var lastBpm = 0;     // detected tempo for this rip (0 = unknown)
+var lastTrack = "";   // resolved track name from engine, for the clip label
+var lastBpm = 0;      // detected tempo for this rip (0 = unknown)
+var lastKey = "";     // detected key label, e.g. "Am" ("" = unknown)
+var lastCamelot = ""; // detected Camelot code, e.g. "8A" ("" = unknown)
 
 var IDLE_TEXT = "ready";
 var MAX_STATUS_CHARS = 34; // what fits in the bbox; full text goes to console
@@ -156,6 +159,8 @@ function rip() {
     setTrack("");
     lastTrack = "";
     lastBpm = 0;
+    lastKey = "";
+    lastCamelot = "";
     resetIcons();
     var a = named("kr_art");
     if (a) a.message("hidden", 1);
@@ -192,6 +197,18 @@ function track() {
 function bpm(v) {
     var s = String(v);
     lastBpm = (s === "none") ? 0 : (parseInt(s, 10) || 0);
+}
+
+// Detected key from the engine: "<camelot> <label>" (e.g. "8A Am"), or "none".
+function key() {
+    var a = Array.prototype.slice.call(arguments);
+    if (a.length >= 2) {
+        lastCamelot = String(a[0]);
+        lastKey = String(a[1]);
+    } else {
+        lastCamelot = "";
+        lastKey = "";
+    }
 }
 
 function art() {
@@ -330,15 +347,21 @@ function loadIntoParentTrack(filePath) {
                     } else {
                         clip.set("warping", 0);
                     }
-                    // Label the clip with its detected BPM regardless (reliable
-                    // surface even if the Seg.BPM field can't be updated).
-                    if (lastBpm > 0 && lastTrack) {
-                        clip.set("name", lastTrack + " · " + lastBpm + " BPM");
+                    // Label the clip with its detected BPM + key regardless
+                    // (reliable surface even if the Seg.BPM field can't update).
+                    if (lastTrack && (lastBpm > 0 || lastCamelot)) {
+                        var nm = lastTrack;
+                        if (lastBpm > 0) nm += " · " + lastBpm + " BPM";
+                        if (lastCamelot) nm += " · " + (lastKey ? lastKey + " " : "") + lastCamelot;
+                        clip.set("name", nm);
                     }
                 } catch (e) {
                     post("[k-ripper] clip setup error: " + (e && e.message ? e.message : e) + "\n");
                 }
-                setStatus("✓ slot " + (i + 1) + (lastBpm > 0 ? " · " + lastBpm + " BPM" : ""));
+                var st = "✓ slot " + (i + 1);
+                if (lastBpm > 0) st += " · " + lastBpm + " BPM";
+                if (lastCamelot) st += " · " + lastCamelot;
+                setStatus(st);
                 setDot(DOT_OK);
                 return;
             }

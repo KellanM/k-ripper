@@ -64,6 +64,19 @@ algorithm by Simon Dixon.
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 -------------------------------------------------------------------
+pitch-detection + fourier-transform
+-------------------------------------------------------------------
+License:  MIT
+Authors:  pitch-detection © Dmitry Iv; fourier-transform © Maxime Euzière
+Source:   https://github.com/audiojs/pitch-detection
+          https://github.com/scijs/fourier-transform
+Vendored under vendor/pitch-detection/ (chroma.js + fourier-transform.js)
+and used to detect each ripped track's musical key (chroma extraction;
+the key correlation + Camelot mapping are K-Ripper's own). Both are MIT —
+permission is granted free of charge to use, copy, modify, and distribute,
+with the copyright notice retained; provided "AS IS" without warranty.
+
+-------------------------------------------------------------------
 Simple Icons / platform marks
 -------------------------------------------------------------------
 Platform icons are rendered from publicly available single-color brand

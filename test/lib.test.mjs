@@ -9,6 +9,7 @@ import {
   extractUrl, pickAudio, pickArt, stripExt, wavName,
   parseProgress, classifyError, isNewer, AUDIO_EXT,
   ffmpegAnalysisArgs, foldOctave, finalizeBpm, formatClipName,
+  detectKeyFromChroma, KEY_TO_CAMELOT, KEY_PROFILES, KEY_NOTE_NAMES,
 } from "../kripper/lib.mjs";
 
 test("extractUrl: plain url", () => {
@@ -162,10 +163,53 @@ test("finalizeBpm: folds then rounds to an integer", () => {
   assert.equal(finalizeBpm(63.4), 127); // 63.4*2 = 126.8 -> 127
 });
 
-test("formatClipName: appends BPM, degrades gracefully", () => {
+test("formatClipName: appends BPM + key, degrades gracefully", () => {
   assert.equal(formatClipName("Artist - Title", 128), "Artist - Title · 128 BPM");
   assert.equal(formatClipName("Artist - Title", 127.6), "Artist - Title · 128 BPM");
   assert.equal(formatClipName("Artist - Title", null), "Artist - Title"); // unknown tempo
   assert.equal(formatClipName("Artist - Title", 0), "Artist - Title");
   assert.equal(formatClipName("", 128), "128 BPM"); // no name, still useful
+  // with key
+  assert.equal(formatClipName("Track", 174, "Am", "8A"), "Track · 174 BPM · Am 8A");
+  assert.equal(formatClipName("Track", null, "Am", "8A"), "Track · Am 8A"); // key only
+  assert.equal(formatClipName("Track", 174, null, null), "Track · 174 BPM"); // bpm only
+  assert.equal(formatClipName("", 128, "C", "8B"), "128 BPM · C 8B");
+});
+
+// ---- musical key detection helpers ------------------------------------
+
+test("KEY_TO_CAMELOT: complete 24-key wheel, relative major/minor share a number", () => {
+  assert.equal(Object.keys(KEY_TO_CAMELOT).length, 24);
+  assert.equal(KEY_TO_CAMELOT.C, "8B");    // C major
+  assert.equal(KEY_TO_CAMELOT.Am, "8A");   // relative minor — same number, A ring
+  assert.equal(KEY_TO_CAMELOT.G, "9B");
+  assert.equal(KEY_TO_CAMELOT.Em, "9A");
+  // every label maps to a valid "<1-12><A|B>" code
+  for (const code of Object.values(KEY_TO_CAMELOT)) assert.match(code, /^([1-9]|1[0-2])[AB]$/);
+});
+
+test("detectKeyFromChroma: identifies major and minor from a triad chroma", () => {
+  const c = (idxs) => { const v = new Float64Array(12); for (const [i, w] of idxs) v[i] = w; return v; };
+  // C(0) E(4) G(7) -> C major / 8B
+  const cmaj = detectKeyFromChroma(c([[0, 1.0], [4, 0.8], [7, 0.9]]));
+  assert.equal(cmaj.label, "C");
+  assert.equal(cmaj.camelot, "8B");
+  assert.ok(cmaj.confidence > 0.5);
+  // A(9) C(0) E(4) -> A minor / 8A
+  const amin = detectKeyFromChroma(c([[9, 1.0], [0, 0.8], [4, 0.7]]));
+  assert.equal(amin.label, "Am");
+  assert.equal(amin.camelot, "8A");
+});
+
+test("detectKeyFromChroma: profiles are selectable and all 24 keys reachable", () => {
+  const cmaj = new Float64Array([1, 0, 0, 0, 0.8, 0, 0, 0.9, 0, 0, 0, 0]);
+  for (const p of Object.keys(KEY_PROFILES)) {
+    assert.equal(detectKeyFromChroma(cmaj, p).label, "C", `profile ${p}`);
+  }
+});
+
+test("detectKeyFromChroma: degenerate input -> null", () => {
+  assert.equal(detectKeyFromChroma(new Float64Array(12)), null); // all zeros
+  assert.equal(detectKeyFromChroma([1, 2, 3]), null);            // too short
+  assert.equal(detectKeyFromChroma(null), null);
 });
