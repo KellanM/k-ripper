@@ -424,6 +424,7 @@ Max.addHandler("rip", async (rawUrl) => {
     Max.outlet("bpm", bpm == null ? "none" : bpm);
     if (keyInfo) Max.outlet("key", keyInfo.camelot, keyInfo.label);
     else Max.outlet("key", "none");
+    Max.post(`[k-ripper] analysis: ${bpm == null ? "tempo —" : bpm + " BPM"}, ${keyInfo ? `${keyInfo.label} ${keyInfo.camelot} (conf ${keyInfo.confidence.toFixed(2)})` : "key — (none/low-confidence)"}`);
 
     Max.outlet("done", path.resolve(outPath));
   } catch (e) {
