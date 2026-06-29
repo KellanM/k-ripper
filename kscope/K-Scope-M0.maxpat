@@ -12,8 +12,8 @@
   "rect": [
    100.0,
    100.0,
-   640.0,
-   480.0
+   720.0,
+   520.0
   ],
   "openinpresentation": 1,
   "default_fontsize": 12.0,
@@ -38,7 +38,7 @@
   "enablehscroll": 1,
   "enablevscroll": 1,
   "devicewidth": 300.0,
-  "description": "K-Scope M0 spine test (analysis half)",
+  "description": "K-Scope M0 spine test (spectrum -> matrix)",
   "digest": "",
   "tags": "",
   "style": "",
@@ -78,15 +78,15 @@
      "patching_rect": [
       20.0,
       44.0,
-      280.0,
+      300.0,
       20.0
      ],
-     "text": "spine test - watch Max console for [kscope] mag",
+     "text": "spine test - console [kscope] max should be > 0",
      "presentation": 1,
      "presentation_rect": [
       10.0,
       30.0,
-      280.0,
+      300.0,
       20.0
      ]
     }
@@ -118,7 +118,7 @@
      "numoutlets": 0,
      "patching_rect": [
       20.0,
-      320.0,
+      340.0,
       80.0,
       22.0
      ],
@@ -133,7 +133,7 @@
      "numoutlets": 1,
      "patching_rect": [
       440.0,
-      90.0,
+      80.0,
       80.0,
       22.0
      ],
@@ -151,7 +151,7 @@
      "numoutlets": 1,
      "patching_rect": [
       440.0,
-      120.0,
+      110.0,
       60.0,
       22.0
      ],
@@ -163,19 +163,38 @@
    },
    {
     "box": {
-     "id": "o-catch",
+     "id": "o-pfft",
      "maxclass": "newobj",
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
       440.0,
-      160.0,
-      110.0,
+      150.0,
+      170.0,
       22.0
      ],
-     "text": "jit.catch~ 1",
+     "text": "pfft~ kscope_fft 2048 4",
      "outlettype": [
-      "jit_matrix"
+      "signal"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-mtx",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 2,
+     "patching_rect": [
+      200.0,
+      150.0,
+      250.0,
+      22.0
+     ],
+     "text": "jit.matrix kscope_spec 1 float32 1024",
+     "outlettype": [
+      "jit_matrix",
+      ""
      ]
     }
    },
@@ -186,7 +205,7 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      240.0,
+      200.0,
       90.0,
       24.0,
       24.0
@@ -210,8 +229,8 @@
      "numinlets": 0,
      "numoutlets": 1,
      "patching_rect": [
-      360.0,
-      50.0,
+      340.0,
+      60.0,
       70.0,
       22.0
      ],
@@ -228,9 +247,9 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      240.0,
+      200.0,
       120.0,
-      80.0,
+      90.0,
       22.0
      ],
      "text": "qmetro 1000",
@@ -246,8 +265,8 @@
      "numinlets": 1,
      "numoutlets": 3,
      "patching_rect": [
-      240.0,
       200.0,
+      190.0,
       60.0,
       22.0
      ],
@@ -266,8 +285,8 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      180.0,
-      240.0,
+      150.0,
+      230.0,
       70.0,
       22.0
      ],
@@ -284,8 +303,8 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      260.0,
-      240.0,
+      230.0,
+      230.0,
       80.0,
       22.0
      ],
@@ -302,8 +321,8 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      350.0,
-      240.0,
+      320.0,
+      230.0,
       70.0,
       22.0
      ],
@@ -320,7 +339,7 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      60.0,
+      20.0,
       200.0,
       100.0,
       22.0
@@ -338,7 +357,7 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      60.0,
+      20.0,
       240.0,
       70.0,
       22.0
@@ -409,7 +428,7 @@
       0
      ],
      "destination": [
-      "o-catch",
+      "o-pfft",
       0
      ]
     }
@@ -445,7 +464,7 @@
       0
      ],
      "destination": [
-      "o-catch",
+      "o-mtx",
       0
      ]
     }
@@ -453,7 +472,7 @@
    {
     "patchline": {
      "source": [
-      "o-catch",
+      "o-mtx",
       0
      ],
      "destination": [

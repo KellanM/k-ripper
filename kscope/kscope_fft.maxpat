@@ -12,8 +12,8 @@
   "rect": [
    100.0,
    100.0,
-   640.0,
-   480.0
+   720.0,
+   520.0
   ],
   "openinpresentation": 0,
   "default_fontsize": 12.0,
@@ -86,6 +86,24 @@
    },
    {
     "box": {
+     "id": "f-binmul",
+     "maxclass": "newobj",
+     "numinlets": 2,
+     "numoutlets": 1,
+     "patching_rect": [
+      200.0,
+      60.0,
+      70.0,
+      22.0
+     ],
+     "text": "*~ 1024",
+     "outlettype": [
+      "signal"
+     ]
+    }
+   },
+   {
+    "box": {
      "id": "f-poke",
      "maxclass": "newobj",
      "numinlets": 2,
@@ -93,10 +111,10 @@
      "patching_rect": [
       30.0,
       150.0,
-      160.0,
+      180.0,
       22.0
      ],
-     "text": "jit.poke~ kscope_spec 1 1"
+     "text": "jit.poke~ kscope_spec 1 0"
     }
    }
   ],
@@ -142,6 +160,18 @@
      "source": [
       "f-in",
       2
+     ],
+     "destination": [
+      "f-binmul",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "f-binmul",
+      0
      ],
      "destination": [
       "f-poke",
