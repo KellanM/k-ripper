@@ -52,6 +52,10 @@ function paint() {
             set_source_rgba(0.055, 0.055, 0.075, 1.0);
             rectangle(0, 0, w, h); fill();
 
+            // VERSION MARKER (unconditional): magenta bar = THIS build is running
+            set_source_rgba(0.95, 0.10, 0.80, 1.0);
+            rectangle(w * 0.5 - 3, 0, 6, h); fill();
+
             // frequency grid
             set_source_rgba(1, 1, 1, 0.06);
             var grids = [100, 1000, 10000];
