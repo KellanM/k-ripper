@@ -41,6 +41,7 @@ function readbin(b) {
 }
 
 var paintCount = 0;
+var paintMaxV = 0;
 
 function paint() {
     paintCount++;
@@ -67,15 +68,18 @@ function paint() {
             // spectrum as vertical bars (rectangle fill is proven to render)
             set_source_rgba(0.91, 0.22, 0.12, 0.95);
             var step = 3;
+            var pmax = 0;
             for (var px = 0; px < w; px += step) {
                 var freq = FMIN * Math.pow(FMAX / FMIN, px / w);
                 var mag = readbin(Math.round(freq / BINHZ));
                 var db = 20 * Math.log(Math.max(mag, 1e-7)) / Math.LN10;
                 var v = (db + 80) / 60;   // -80..-20 dB -> 0..1
                 if (v < 0) v = 0; if (v > 1) v = 1;
+                if (v > pmax) pmax = v;
                 var bh = v * h;
                 if (bh > 0.5) { rectangle(px, h - bh, step - 0.6, bh); fill(); }
             }
+            paintMaxV = pmax;
         }
     } catch (e) {
         post("[kscope] paint error: " + e.message + "\n");
@@ -85,7 +89,9 @@ function paint() {
 function bang() { mgraphics.redraw(); }
 
 function dbg() {
-    post("[kscope] ui max=" + lastMax.toFixed(5) +
-         " size=" + (box.rect[2] - box.rect[0]) + "x" + (box.rect[3] - box.rect[1]) +
+    post("[kscope] ui jmMax=" + lastMax.toFixed(5) +
+         " bins5=" + (bins[5] || 0).toFixed(5) +
+         " bins10=" + (bins[10] || 0).toFixed(5) +
+         " paintMaxV=" + paintMaxV.toFixed(3) +
          " paints=" + paintCount + "\n");
 }
