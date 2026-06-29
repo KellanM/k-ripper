@@ -105,7 +105,10 @@ def build_main():
         box("o-lb", "loadbang", 360, 50, 70, 0, 1, ["bang"]),
         box("o-qm", "qmetro 500", 240, 120, 80, 1, 1, ["bang"]),
         box("o-3m", "jit.3m", 240, 200, 60, 1, 3, ["", "", ""]),
-        box("o-log", "js kscope_log.js", 240, 250, 130, 1, 0),
+        box("o-premag", "prepend mag", 240, 240, 90, 1, 1, [""]),
+        box("o-snap", "snapshot~ 250", 60, 200, 100, 1, 1, ["float"]),
+        box("o-prein", "prepend in", 60, 240, 70, 1, 1, [""]),
+        box("o-log", "js kscope_log.js", 150, 290, 130, 1, 0),
     ]
     lines = [
         line("o-in", 0, "o-out", 0),     # L passthrough
@@ -115,7 +118,11 @@ def build_main():
         line("o-tgl", 0, "o-qm", 0),
         line("o-qm", 0, "o-mtx", 0),     # bang -> output named matrix
         line("o-mtx", 0, "o-3m", 0),     # matrix -> min/mean/max
-        line("o-3m", 2, "o-log", 0),     # max -> js post() -> MaxPlug.log
+        line("o-3m", 2, "o-premag", 0),  # max -> label "mag"
+        line("o-premag", 0, "o-log", 0),
+        line("o-in", 0, "o-snap", 0),    # plugin L -> input level probe
+        line("o-snap", 0, "o-prein", 0),
+        line("o-prein", 0, "o-log", 0),  # label "in" -> js post()
     ]
     return patcher(boxes, lines, present=True, desc="K-Scope M0 spine test (analysis half)")
 

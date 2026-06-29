@@ -244,13 +244,67 @@
    },
    {
     "box": {
+     "id": "o-premag",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      240.0,
+      240.0,
+      90.0,
+      22.0
+     ],
+     "text": "prepend mag",
+     "outlettype": [
+      ""
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-snap",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      60.0,
+      200.0,
+      100.0,
+      22.0
+     ],
+     "text": "snapshot~ 250",
+     "outlettype": [
+      "float"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-prein",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      60.0,
+      240.0,
+      70.0,
+      22.0
+     ],
+     "text": "prepend in",
+     "outlettype": [
+      ""
+     ]
+    }
+   },
+   {
+    "box": {
      "id": "o-log",
      "maxclass": "newobj",
      "numinlets": 1,
      "numoutlets": 0,
      "patching_rect": [
-      240.0,
-      250.0,
+      150.0,
+      290.0,
       130.0,
       22.0
      ],
@@ -348,6 +402,54 @@
      "source": [
       "o-3m",
       2
+     ],
+     "destination": [
+      "o-premag",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-premag",
+      0
+     ],
+     "destination": [
+      "o-log",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-in",
+      0
+     ],
+     "destination": [
+      "o-snap",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-snap",
+      0
+     ],
+     "destination": [
+      "o-prein",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-prein",
+      0
      ],
      "destination": [
       "o-log",
