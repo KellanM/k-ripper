@@ -79,15 +79,16 @@ def build_main():
     DW = 540
     boxes = [
         # ---- presentation UI ----
+        # left column: title + toggle; spectrum gets the full height to the right
         uiobj("o-title", "comment", 20, 20, 200, 22, 1, 0,
               extra={"text": "K-SCOPE", "presentation": 1,
-                     "presentation_rect": [16.0, 10.0, 160.0, 22.0],
-                     "fontsize": 15.0, "fontface": 1, "textcolor": [0.91, 0.30, 0.18, 1.0]}),
+                     "presentation_rect": [10.0, 14.0, 74.0, 20.0],
+                     "fontsize": 12.0, "fontface": 1, "textcolor": [0.91, 0.30, 0.18, 1.0]}),
+        uiobj("o-tgl", "toggle", 400, 20, 24, 24, 1, 1, [""],
+              extra={"presentation": 1, "presentation_rect": [12.0, 42.0, 20.0, 20.0]}),
         uiobj("o-ui", "jsui", 20, 250, 360, 180, 1, 1, [""],
               extra={"filename": "kscope_ui.js", "presentation": 1,
-                     "presentation_rect": [12.0, 40.0, float(DW - 24), 196.0]}),
-        uiobj("o-tgl", "toggle", 400, 20, 24, 24, 1, 1, [""],
-              extra={"presentation": 1, "presentation_rect": [float(DW - 30), 12.0, 18.0, 18.0]}),
+                     "presentation_rect": [86.0, 8.0, float(DW - 94), 288.0]}),
         # ---- audio + analysis (internal) ----
         box("o-in", "plugin~", 20, 70, 80, 0, 2, ["signal", "signal"]),
         box("o-out", "plugout~", 20, 470, 80, 2, 0),

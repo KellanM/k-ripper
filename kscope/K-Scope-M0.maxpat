@@ -60,18 +60,42 @@
      "text": "K-SCOPE",
      "presentation": 1,
      "presentation_rect": [
-      16.0,
       10.0,
-      160.0,
-      22.0
+      14.0,
+      74.0,
+      20.0
      ],
-     "fontsize": 15.0,
+     "fontsize": 12.0,
      "fontface": 1,
      "textcolor": [
       0.91,
       0.3,
       0.18,
       1.0
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-tgl",
+     "maxclass": "toggle",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      400.0,
+      20.0,
+      24.0,
+      24.0
+     ],
+     "outlettype": [
+      ""
+     ],
+     "presentation": 1,
+     "presentation_rect": [
+      12.0,
+      42.0,
+      20.0,
+      20.0
      ]
     }
    },
@@ -93,34 +117,10 @@
      "filename": "kscope_ui.js",
      "presentation": 1,
      "presentation_rect": [
-      12.0,
-      40.0,
-      516.0,
-      196.0
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-tgl",
-     "maxclass": "toggle",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      400.0,
-      20.0,
-      24.0,
-      24.0
-     ],
-     "outlettype": [
-      ""
-     ],
-     "presentation": 1,
-     "presentation_rect": [
-      510.0,
-      12.0,
-      18.0,
-      18.0
+      86.0,
+      8.0,
+      446.0,
+      288.0
      ]
     }
    },

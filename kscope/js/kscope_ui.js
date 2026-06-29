@@ -86,12 +86,22 @@ function paint() {
         // build the spectrum polyline (log-freq X, tilted dBFS Y, bin-interpolated)
         var pts = [];
         for (var px = 0; px <= w; px += 1) {
-            var freq = FMIN * Math.pow(FMAX / FMIN, px / w);
-            var binF = freq / BINHZ;
-            var b0 = Math.floor(binF), frac = binF - b0;
-            var mag = readbin(b0) * (1 - frac) + readbin(b0 + 1) * frac;  // interpolate
+            var fc = FMIN * Math.pow(FMAX / FMIN, px / w);
+            var fn = FMIN * Math.pow(FMAX / FMIN, (px + 1) / w);
+            var bc = fc / BINHZ, bn = fn / BINHZ;
+            var mag;
+            if (bn - bc >= 1.0) {
+                // many bins per pixel (high freq): peak-aggregate, like SPAN
+                var i0 = Math.max(0, Math.round(bc)), i1 = Math.min(NBINS - 1, Math.round(bn));
+                mag = 0;
+                for (var bb = i0; bb <= i1; bb++) if (bins[bb] > mag) mag = bins[bb];
+            } else {
+                // sub-bin (low freq): interpolate between adjacent bins
+                var b0 = Math.floor(bc), frac = bc - b0;
+                mag = readbin(b0) * (1 - frac) + readbin(b0 + 1) * frac;
+            }
             var dbfs = magToDb(mag);
-            var dbDisp = dbfs + TILT * Math.log(freq / 1000) / Math.LN2;  // +4.5 dB/oct tilt
+            var dbDisp = dbfs + TILT * Math.log(fc / 1000) / Math.LN2;  // +4.5 dB/oct tilt
             pts.push([px, dbToY(dbDisp, h)]);
         }
 
