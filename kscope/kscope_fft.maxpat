@@ -86,6 +86,24 @@
    },
    {
     "box": {
+     "id": "f-gain",
+     "maxclass": "newobj",
+     "numinlets": 2,
+     "numoutlets": 1,
+     "patching_rect": [
+      30.0,
+      120.0,
+      60.0,
+      22.0
+     ],
+     "text": "*~ 60",
+     "outlettype": [
+      "signal"
+     ]
+    }
+   },
+   {
+    "box": {
      "id": "f-binmul",
      "maxclass": "newobj",
      "numinlets": 2,
@@ -110,7 +128,7 @@
      "numoutlets": 0,
      "patching_rect": [
       30.0,
-      150.0,
+      160.0,
       180.0,
       22.0
      ],
@@ -147,6 +165,18 @@
     "patchline": {
      "source": [
       "f-c2p",
+      0
+     ],
+     "destination": [
+      "f-gain",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "f-gain",
       0
      ],
      "destination": [

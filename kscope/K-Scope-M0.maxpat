@@ -382,6 +382,86 @@
      ],
      "text": "js kscope_log.js"
     }
+   },
+   {
+    "box": {
+     "id": "o-trig",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 2,
+     "patching_rect": [
+      320.0,
+      120.0,
+      50.0,
+      22.0
+     ],
+     "text": "t b b",
+     "outlettype": [
+      "bang",
+      "bang"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-tex",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      440.0,
+      210.0,
+      180.0,
+      22.0
+     ],
+     "text": "jit.gl.texture kscope_ctx",
+     "outlettype": [
+      "jit_gl_texture"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-plane",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      440.0,
+      250.0,
+      300.0,
+      22.0
+     ],
+     "text": "jit.gl.videoplane kscope_ctx @transform_reset 2",
+     "outlettype": [
+      ""
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-world",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      440.0,
+      300.0,
+      170.0,
+      22.0
+     ],
+     "text": "jit.pworld kscope_ctx",
+     "outlettype": [
+      ""
+     ],
+     "presentation": 1,
+     "presentation_rect": [
+      10.0,
+      55.0,
+      280.0,
+      150.0
+     ]
+    }
    }
   ],
   "lines": [
@@ -464,7 +544,31 @@
       0
      ],
      "destination": [
+      "o-trig",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-trig",
+      1
+     ],
+     "destination": [
       "o-mtx",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-trig",
+      0
+     ],
+     "destination": [
+      "o-world",
       0
      ]
     }
@@ -477,6 +581,30 @@
      ],
      "destination": [
       "o-3m",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-mtx",
+      0
+     ],
+     "destination": [
+      "o-tex",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-tex",
+      0
+     ],
+     "destination": [
+      "o-plane",
       0
      ]
     }

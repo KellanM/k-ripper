@@ -72,13 +72,15 @@ def build_fft_subpatch():
     boxes = [
         box("f-in", "fftin~ 1", 30, 30, 60, 1, 3, ["signal", "signal", "signal"]),
         box("f-c2p", "cartopol~", 30, 90, 80, 2, 2, ["signal", "signal"]),
+        box("f-gain", "*~ 60", 30, 120, 60, 2, 1, ["signal"]),  # amplify for a visible texture
         box("f-binmul", "*~ 1024", 200, 60, 70, 2, 1, ["signal"]),  # sync 0..1 -> bin 0..1024
-        box("f-poke", "jit.poke~ kscope_spec 1 0", 30, 150, 180, 2, 0),  # PLANE 0
+        box("f-poke", "jit.poke~ kscope_spec 1 0", 30, 160, 180, 2, 0),  # PLANE 0
     ]
     lines = [
         line("f-in", 0, "f-c2p", 0),     # real -> cartopol L
         line("f-in", 1, "f-c2p", 1),     # imag -> cartopol R
-        line("f-c2p", 0, "f-poke", 0),   # magnitude -> poke value (left inlet)
+        line("f-c2p", 0, "f-gain", 0),   # magnitude -> amplify
+        line("f-gain", 0, "f-poke", 0),  # -> poke value (left inlet)
         line("f-in", 2, "f-binmul", 0),  # sync ramp -> scale
         line("f-binmul", 0, "f-poke", 1),  # bin index -> poke x-coord
     ]
@@ -110,6 +112,12 @@ def build_main():
         box("o-snap", "snapshot~ 1000", 20, 200, 100, 1, 1, ["float"]),
         box("o-prein", "prepend in", 20, 240, 70, 1, 1, [""]),
         box("o-log", "js kscope_log.js", 150, 290, 130, 1, 0),
+        # --- GPU display chain (Round 2a: no shader yet) ---
+        box("o-trig", "t b b", 320, 120, 50, 1, 2, ["bang", "bang"]),
+        box("o-tex", "jit.gl.texture kscope_ctx", 440, 210, 180, 1, 1, ["jit_gl_texture"]),
+        box("o-plane", "jit.gl.videoplane kscope_ctx @transform_reset 2", 440, 250, 300, 1, 1, [""]),
+        box("o-world", "jit.pworld kscope_ctx", 440, 300, 170, 1, 1, [""],
+            extra={"presentation": 1, "presentation_rect": [10.0, 55.0, 280.0, 150.0]}),
     ]
     lines = [
         line("o-in", 0, "o-out", 0),     # L passthrough
@@ -118,8 +126,12 @@ def build_main():
         line("o-amp", 0, "o-pfft", 0),   # analyze the tone
         line("o-lb", 0, "o-tgl", 0),     # autostart qmetro
         line("o-tgl", 0, "o-qm", 0),
-        line("o-qm", 0, "o-mtx", 0),     # bang -> output the named (poked) matrix
-        line("o-mtx", 0, "o-3m", 0),     # matrix -> min/mean/max
+        line("o-qm", 0, "o-trig", 0),     # sequence: update matrix, THEN render
+        line("o-trig", 1, "o-mtx", 0),    # right (fires first) -> bang the matrix
+        line("o-trig", 0, "o-world", 0),  # left (fires second) -> render the GL context
+        line("o-mtx", 0, "o-3m", 0),      # matrix -> min/mean/max (console)
+        line("o-mtx", 0, "o-tex", 0),     # matrix -> GPU texture
+        line("o-tex", 0, "o-plane", 0),   # texture -> videoplane (in the context)
         line("o-3m", 0, "o-pmin", 0),
         line("o-3m", 1, "o-pmean", 0),
         line("o-3m", 2, "o-pmax", 0),
