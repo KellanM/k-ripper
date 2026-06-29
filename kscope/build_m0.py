@@ -93,7 +93,7 @@ def build_main():
         # ---- audio + analysis (internal) ----
         box("o-in", "plugin~", 20, 70, 80, 0, 2, ["signal", "signal"]),
         box("o-out", "plugout~", 20, 470, 80, 2, 0),
-        box("o-osc", "cycle~ 440", 440, 70, 80, 2, 1, ["signal"]),
+        box("o-osc", "saw~ 110", 440, 70, 80, 2, 1, ["signal"]),  # harmonic-rich -> visible spectrum
         box("o-amp", "*~ 0.3", 440, 100, 60, 2, 1, ["signal"]),
         box("o-pfft", "pfft~ kscope_fft 2048 4", 440, 130, 170, 1, 1, ["signal"]),
         box("o-mtx", "jit.matrix kscope_spec 1 float32 1024", 200, 130, 250, 1, 2, ["jit_matrix", ""]),

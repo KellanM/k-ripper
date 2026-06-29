@@ -52,7 +52,7 @@ function paint() {
             var freq = FMIN * Math.pow(FMAX / FMIN, px / w);
             var mag = readbin(Math.round(freq / BINHZ));
             var db = 20 * Math.log(Math.max(mag, 1e-7)) / Math.LN10;
-            var v = (db + 90) / 90;
+            var v = (db + 80) / 60;   // -80..-20 dB -> 0..1 (fuller display)
             if (v < 0) v = 0; if (v > 1) v = 1;
             pts.push([px, h - v * h]);
         }
@@ -80,10 +80,6 @@ function paint() {
                 for (var j = 1; j < pts.length; j++) line_to(pts[j][0], pts[j][1]);
                 stroke();
             }
-
-            // DIAGNOSTIC heartbeat: bright green box top-left proves paint() runs
-            set_source_rgba(0.20, 0.90, 0.35, 1.0);
-            rectangle(4, 4, 18, 18); fill();
         }
     } catch (e) {
         post("[kscope] paint error: " + e.message + "\n");

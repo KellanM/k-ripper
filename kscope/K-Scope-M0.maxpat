@@ -170,7 +170,7 @@
       80.0,
       22.0
      ],
-     "text": "cycle~ 440",
+     "text": "saw~ 110",
      "outlettype": [
       "signal"
      ]
