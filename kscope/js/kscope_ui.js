@@ -1,8 +1,8 @@
 // K-Scope M0 — spectrum display (jsui / mgraphics, CPU draw).
-// Reads the named Jitter matrix "kscope_spec" that jit.poke~ fills with FFT
-// magnitudes, and draws a log-frequency filled spectrum in the brand palette.
-// This is the spec's sanctioned fallback renderer; it is authorable + self-
-// debuggable (post() -> MaxPlug.log), unlike the GL path.
+// Receives the FFT-magnitude matrix as a jit_matrix message (push model) and
+// caches it into bins[]; draws a log-frequency filled spectrum in the brand
+// palette. Push (vs creating a JitterMatrix at load) avoids the named-matrix
+// timing/binding collision that read back all zeros.
 
 autowatch = 1;
 mgraphics.init();
@@ -12,43 +12,50 @@ mgraphics.autofill = 0;
 var NBINS = 1024;          // FFT 2048 -> 1024 magnitude bins
 var BINHZ = 44100 / 2048;  // Hz per bin
 var FMIN = 20, FMAX = 20000;
-var spec = new JitterMatrix("kscope_spec");
+var bins = new Array(NBINS);
+for (var k = 0; k < NBINS; k++) bins[k] = 0;
 var lastMax = 0;
+
+// Called when the patch sends the named matrix to this jsui's inlet.
+function jit_matrix(name) {
+    var m = new JitterMatrix(name);
+    var d = m.dim;
+    var n = (d instanceof Array) ? d[0] : d;
+    if (!n || n < 1) n = NBINS;
+    var mx = 0;
+    for (var i = 0; i < n && i < NBINS; i++) {
+        var c = m.getcell(i);
+        var v = (c instanceof Array) ? c[c.length - 1] : c;
+        if (typeof v !== "number") v = 0;
+        bins[i] = v;
+        if (v > mx) mx = v;
+    }
+    lastMax = mx;
+    mgraphics.redraw();
+}
 
 function readbin(b) {
     if (b < 0) b = 0;
     if (b >= NBINS) b = NBINS - 1;
-    var c;
-    try { c = spec.getcell(b); } catch (e) { return 0; }
-    if (c === null || c === undefined) return 0;
-    if (c instanceof Array) return c[c.length - 1];
-    return c;
+    return bins[b];
 }
 
 function paint() {
     var w = box.rect[2] - box.rect[0];
     var h = box.rect[3] - box.rect[1];
-
-    // precompute the spectrum polyline (log-freq X, dB Y)
     var pts = [];
-    var mx = 0;
     for (var px = 0; px <= w; px += 2) {
         var freq = FMIN * Math.pow(FMAX / FMIN, px / w);
         var mag = readbin(Math.round(freq / BINHZ));
-        if (mag > mx) mx = mag;
         var db = 20 * Math.log(Math.max(mag, 1e-7)) / Math.LN10;
         var v = (db + 90) / 90;
         if (v < 0) v = 0; if (v > 1) v = 1;
         pts.push([px, h - v * h]);
     }
-    lastMax = mx;
-
     with (mgraphics) {
-        // background
         set_source_rgba(0.055, 0.055, 0.075, 1.0);
         rectangle(0, 0, w, h); fill();
 
-        // frequency grid (100 / 1k / 10k)
         set_source_rgba(1, 1, 1, 0.06);
         set_line_width(1);
         var grids = [100, 1000, 10000];
@@ -58,13 +65,11 @@ function paint() {
         }
 
         if (pts.length > 1) {
-            // filled body (signal red)
             move_to(0, h);
             for (var i = 0; i < pts.length; i++) line_to(pts[i][0], pts[i][1]);
             line_to(w, h); close_path();
             set_source_rgba(0.91, 0.20, 0.11, 0.88);
             fill();
-            // brighter top edge
             set_source_rgba(1.0, 0.45, 0.30, 0.95);
             set_line_width(1.5);
             move_to(pts[0][0], pts[0][1]);
@@ -76,7 +81,6 @@ function paint() {
 
 function bang() { mgraphics.redraw(); }
 
-// throttled debug (driven by a separate metro -> "dbg")
 function dbg() {
     post("[kscope] ui max=" + lastMax.toFixed(5) +
          " size=" + (box.rect[2] - box.rect[0]) + "x" + (box.rect[3] - box.rect[1]) + "\n");

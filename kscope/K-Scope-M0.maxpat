@@ -396,6 +396,18 @@
       0
      ],
      "destination": [
+      "o-mtx",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-mtx",
+      0
+     ],
+     "destination": [
       "o-ui",
       0
      ]

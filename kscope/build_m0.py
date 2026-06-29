@@ -111,7 +111,8 @@ def build_main():
         line("o-lb", 0, "o-tgl", 0),     # autostart
         line("o-tgl", 0, "o-qm", 0),
         line("o-tgl", 0, "o-dbgm", 0),
-        line("o-qm", 0, "o-ui", 0),      # redraw the spectrum
+        line("o-qm", 0, "o-mtx", 0),     # bang the named matrix
+        line("o-mtx", 0, "o-ui", 0),     # jit_matrix -> jsui reads + redraws
         line("o-dbgm", 0, "o-dbgmsg", 0),
         line("o-dbgmsg", 0, "o-ui", 0),  # "dbg" -> jsui logs max+size to console
     ]
