@@ -11,8 +11,10 @@ mgraphics.autofill = 0;
 var NBINS = 1024;
 var BINHZ = 44100 / 2048;
 var FMIN = 20, FMAX = 20000;
-var DB_TOP = 0, DB_BOT = -96;      // SPAN-style vertical range
+var DB_TOP = 6, DB_BOT = -90;      // SPAN/FabFilter-style vertical range
 var SMOOTH = 0.5;                  // temporal smoothing (0 = none)
+var FFTREF = 512;                  // 0 dBFS magnitude for 2048-pt Hann pfft~ (N/4)
+var TILT = 4.5;                    // +4.5 dB/oct @ 1kHz (SPAN/FabFilter default)
 
 var bins = new Array(NBINS);
 for (var k = 0; k < NBINS; k++) bins[k] = 0;
@@ -35,7 +37,8 @@ function jit_matrix(name) {
     mgraphics.redraw();
 }
 
-function magToDb(mag) { return 20 * Math.log(Math.max(mag, 1e-7)) / Math.LN10; }
+// magnitude -> dBFS (calibrated: 0 dBFS sine = N/4 magnitude for Hann pfft~)
+function magToDb(mag) { return 20 * Math.log(Math.max(mag, 1e-9) / FFTREF) / Math.LN10; }
 function dbToY(db, h) {
     var t = (db - DB_BOT) / (DB_TOP - DB_BOT);   // 0..1 bottom..top
     if (t < 0) t = 0; if (t > 1) t = 1;
@@ -54,7 +57,7 @@ function paint() {
         // horizontal dB grid + labels (every 12 dB)
         select_font_face("Arial");
         set_font_size(9);
-        for (var db = DB_TOP; db >= DB_BOT; db -= 12) {
+        for (var db = 0; db >= DB_BOT; db -= 12) {
             var gy = dbToY(db, h);
             set_source_rgba(1, 1, 1, 0.07);
             rectangle(0, gy, w, 1); fill();
@@ -84,7 +87,9 @@ function paint() {
         set_source_rgba(0.91, 0.22, 0.12, 0.85);
         for (var px = 0; px < w; px += 1) {
             var freq = FMIN * Math.pow(FMAX / FMIN, px / w);
-            var y = dbToY(magToDb(readbin(Math.round(freq / BINHZ))), h);
+            var dbfs = magToDb(readbin(Math.round(freq / BINHZ)));
+            var dbDisp = dbfs + TILT * Math.log(freq / 1000) / Math.LN2;  // +4.5 dB/oct tilt
+            var y = dbToY(dbDisp, h);
             if (y < h - 0.5) { rectangle(px, y, 1, h - y); fill(); }
         }
     }
