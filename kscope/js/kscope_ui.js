@@ -16,21 +16,26 @@ var bins = new Array(NBINS);
 for (var k = 0; k < NBINS; k++) bins[k] = 0;
 var lastMax = 0;
 
+var matrixDim = 0, maxBin = -1, sampleC = "?";
+
 // Called when the patch sends the named matrix to this jsui's inlet.
 function jit_matrix(name) {
     var m = new JitterMatrix(name);
     var d = m.dim;
     var n = (d instanceof Array) ? d[0] : d;
+    matrixDim = n;
     if (!n || n < 1) n = NBINS;
-    var mx = 0;
+    var mx = 0, mb = -1;
     for (var i = 0; i < n && i < NBINS; i++) {
         var c = m.getcell(i);
+        if (i === 5) sampleC = JSON.stringify(c);  // what does getcell actually return?
         var v = (c instanceof Array) ? c[c.length - 1] : c;
         if (typeof v !== "number") v = 0;
         bins[i] = v;
-        if (v > mx) mx = v;
+        if (v > mx) { mx = v; mb = i; }
     }
     lastMax = mx;
+    maxBin = mb;
     mgraphics.redraw();
 }
 
@@ -90,8 +95,8 @@ function bang() { mgraphics.redraw(); }
 
 function dbg() {
     post("[kscope] ui jmMax=" + lastMax.toFixed(5) +
-         " bins5=" + (bins[5] || 0).toFixed(5) +
-         " bins10=" + (bins[10] || 0).toFixed(5) +
-         " paintMaxV=" + paintMaxV.toFixed(3) +
-         " paints=" + paintCount + "\n");
+         " dim=" + matrixDim + " maxBin=" + maxBin +
+         " bins[maxBin]=" + (maxBin >= 0 ? (bins[maxBin] || 0).toFixed(5) : "na") +
+         " getcell(5)=" + sampleC +
+         " paintMaxV=" + paintMaxV.toFixed(3) + "\n");
 }
