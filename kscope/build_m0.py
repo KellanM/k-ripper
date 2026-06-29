@@ -64,15 +64,13 @@ def build_fft_subpatch():
     boxes = [
         box("f-in", "fftin~ 1", 30, 30, 60, 1, 3, ["signal", "signal", "signal"]),
         box("f-c2p", "cartopol~", 30, 90, 80, 2, 2, ["signal", "signal"]),
-        box("f-binmul", "*~ 1024", 200, 60, 70, 2, 1, ["signal"]),       # sync 0..1 -> bin
         box("f-poke", "jit.poke~ kscope_spec 1 0", 30, 150, 180, 2, 0),  # PLANE 0
     ]
     lines = [
         line("f-in", 0, "f-c2p", 0),
         line("f-in", 1, "f-c2p", 1),
-        line("f-c2p", 0, "f-poke", 0),     # magnitude -> poke value
-        line("f-in", 2, "f-binmul", 0),
-        line("f-binmul", 0, "f-poke", 1),  # bin index -> poke x-coord
+        line("f-c2p", 0, "f-poke", 0),   # magnitude -> poke value
+        line("f-in", 2, "f-poke", 1),    # fftin~ sync IS the bin index (0..1023) -> x-coord
     ]
     return patcher(boxes, lines)
 
