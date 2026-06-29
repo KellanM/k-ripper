@@ -91,8 +91,6 @@ def build_main():
         # ---- audio + analysis (internal) ----
         box("o-in", "plugin~", 20, 70, 80, 0, 2, ["signal", "signal"]),
         box("o-out", "plugout~", 20, 470, 80, 2, 0),
-        box("o-osc", "saw~ 110", 440, 70, 80, 2, 1, ["signal"]),  # harmonic-rich -> visible spectrum
-        box("o-amp", "*~ 0.3", 440, 100, 60, 2, 1, ["signal"]),
         box("o-pfft", "pfft~ kscope_fft 2048 4", 440, 130, 170, 1, 1, ["signal"]),
         box("o-mtx", "jit.matrix kscope_spec 1 float32 1024", 200, 130, 250, 1, 2, ["jit_matrix", ""]),
         # ---- clocks ----
@@ -104,8 +102,7 @@ def build_main():
     lines = [
         line("o-in", 0, "o-out", 0),     # passthrough L
         line("o-in", 1, "o-out", 1),     # passthrough R
-        line("o-osc", 0, "o-amp", 0),    # internal 440Hz tone
-        line("o-amp", 0, "o-pfft", 0),   # analyze
+        line("o-in", 0, "o-pfft", 0),    # analyze the track's real input audio
         line("o-lb", 0, "o-tgl", 0),     # autostart
         line("o-tgl", 0, "o-qm", 0),
         line("o-tgl", 0, "o-dbgm", 0),

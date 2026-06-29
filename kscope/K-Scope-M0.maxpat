@@ -160,42 +160,6 @@
    },
    {
     "box": {
-     "id": "o-osc",
-     "maxclass": "newobj",
-     "numinlets": 2,
-     "numoutlets": 1,
-     "patching_rect": [
-      440.0,
-      70.0,
-      80.0,
-      22.0
-     ],
-     "text": "saw~ 110",
-     "outlettype": [
-      "signal"
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-amp",
-     "maxclass": "newobj",
-     "numinlets": 2,
-     "numoutlets": 1,
-     "patching_rect": [
-      440.0,
-      100.0,
-      60.0,
-      22.0
-     ],
-     "text": "*~ 0.3",
-     "outlettype": [
-      "signal"
-     ]
-    }
-   },
-   {
-    "box": {
      "id": "o-pfft",
      "maxclass": "newobj",
      "numinlets": 1,
@@ -332,19 +296,7 @@
    {
     "patchline": {
      "source": [
-      "o-osc",
-      0
-     ],
-     "destination": [
-      "o-amp",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-amp",
+      "o-in",
       0
      ],
      "destination": [
