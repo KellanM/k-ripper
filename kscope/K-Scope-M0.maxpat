@@ -127,6 +127,42 @@
    },
    {
     "box": {
+     "id": "o-osc",
+     "maxclass": "newobj",
+     "numinlets": 2,
+     "numoutlets": 1,
+     "patching_rect": [
+      440.0,
+      90.0,
+      80.0,
+      22.0
+     ],
+     "text": "cycle~ 440",
+     "outlettype": [
+      "signal"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-amp",
+     "maxclass": "newobj",
+     "numinlets": 2,
+     "numoutlets": 1,
+     "patching_rect": [
+      440.0,
+      120.0,
+      60.0,
+      22.0
+     ],
+     "text": "*~ 0.3",
+     "outlettype": [
+      "signal"
+     ]
+    }
+   },
+   {
+    "box": {
      "id": "o-pfft",
      "maxclass": "newobj",
      "numinlets": 1,
@@ -216,7 +252,7 @@
       80.0,
       22.0
      ],
-     "text": "qmetro 500",
+     "text": "qmetro 1000",
      "outlettype": [
       "bang"
      ]
@@ -272,7 +308,7 @@
       100.0,
       22.0
      ],
-     "text": "snapshot~ 250",
+     "text": "snapshot~ 1000",
      "outlettype": [
       "float"
      ]
@@ -340,7 +376,19 @@
    {
     "patchline": {
      "source": [
-      "o-in",
+      "o-osc",
+      0
+     ],
+     "destination": [
+      "o-amp",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-amp",
       0
      ],
      "destination": [
@@ -424,7 +472,7 @@
    {
     "patchline": {
      "source": [
-      "o-in",
+      "o-amp",
       0
      ],
      "destination": [
