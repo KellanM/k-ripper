@@ -12,8 +12,8 @@
   "rect": [
    100.0,
    100.0,
-   720.0,
-   520.0
+   760.0,
+   540.0
   ],
   "openinpresentation": 0,
   "default_fontsize": 12.0,
@@ -37,7 +37,7 @@
   "boxanimatetime": 200,
   "enablehscroll": 1,
   "enablevscroll": 1,
-  "devicewidth": 300.0,
+  "devicewidth": 540.0,
   "description": "",
   "digest": "",
   "tags": "",
@@ -86,24 +86,6 @@
    },
    {
     "box": {
-     "id": "f-gain",
-     "maxclass": "newobj",
-     "numinlets": 2,
-     "numoutlets": 1,
-     "patching_rect": [
-      30.0,
-      120.0,
-      60.0,
-      22.0
-     ],
-     "text": "*~ 60",
-     "outlettype": [
-      "signal"
-     ]
-    }
-   },
-   {
-    "box": {
      "id": "f-binmul",
      "maxclass": "newobj",
      "numinlets": 2,
@@ -128,7 +110,7 @@
      "numoutlets": 0,
      "patching_rect": [
       30.0,
-      160.0,
+      150.0,
       180.0,
       22.0
      ],
@@ -165,18 +147,6 @@
     "patchline": {
      "source": [
       "f-c2p",
-      0
-     ],
-     "destination": [
-      "f-gain",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "f-gain",
       0
      ],
      "destination": [

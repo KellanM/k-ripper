@@ -12,8 +12,8 @@
   "rect": [
    100.0,
    100.0,
-   720.0,
-   520.0
+   760.0,
+   540.0
   ],
   "openinpresentation": 1,
   "default_fontsize": 12.0,
@@ -37,8 +37,8 @@
   "boxanimatetime": 200,
   "enablehscroll": 1,
   "enablevscroll": 1,
-  "devicewidth": 300.0,
-  "description": "K-Scope M0 spine test (spectrum -> matrix)",
+  "devicewidth": 540.0,
+  "description": "K-Scope M0 spectrum (jsui)",
   "digest": "",
   "tags": "",
   "style": "",
@@ -55,39 +55,72 @@
       20.0,
       20.0,
       200.0,
-      20.0
+      22.0
      ],
-     "text": "K-SCOPE M0",
+     "text": "K-SCOPE",
      "presentation": 1,
      "presentation_rect": [
+      16.0,
       10.0,
-      8.0,
       160.0,
-      20.0
+      22.0
      ],
-     "fontsize": 13.0,
-     "fontface": 1
+     "fontsize": 15.0,
+     "fontface": 1,
+     "textcolor": [
+      0.91,
+      0.3,
+      0.18,
+      1.0
+     ]
     }
    },
    {
     "box": {
-     "id": "o-hint",
-     "maxclass": "comment",
+     "id": "o-ui",
+     "maxclass": "jsui",
      "numinlets": 1,
-     "numoutlets": 0,
+     "numoutlets": 1,
      "patching_rect": [
       20.0,
-      44.0,
-      300.0,
-      20.0
+      250.0,
+      360.0,
+      180.0
      ],
-     "text": "spine test - console [kscope] max should be > 0",
+     "outlettype": [
+      ""
+     ],
+     "filename": "kscope_ui.js",
      "presentation": 1,
      "presentation_rect": [
-      10.0,
-      30.0,
-      300.0,
-      20.0
+      12.0,
+      40.0,
+      516.0,
+      196.0
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-tgl",
+     "maxclass": "toggle",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      400.0,
+      20.0,
+      24.0,
+      24.0
+     ],
+     "outlettype": [
+      ""
+     ],
+     "presentation": 1,
+     "presentation_rect": [
+      510.0,
+      12.0,
+      18.0,
+      18.0
      ]
     }
    },
@@ -99,7 +132,7 @@
      "numoutlets": 2,
      "patching_rect": [
       20.0,
-      90.0,
+      70.0,
       80.0,
       22.0
      ],
@@ -118,7 +151,7 @@
      "numoutlets": 0,
      "patching_rect": [
       20.0,
-      340.0,
+      470.0,
       80.0,
       22.0
      ],
@@ -133,7 +166,7 @@
      "numoutlets": 1,
      "patching_rect": [
       440.0,
-      80.0,
+      70.0,
       80.0,
       22.0
      ],
@@ -151,7 +184,7 @@
      "numoutlets": 1,
      "patching_rect": [
       440.0,
-      110.0,
+      100.0,
       60.0,
       22.0
      ],
@@ -169,7 +202,7 @@
      "numoutlets": 1,
      "patching_rect": [
       440.0,
-      150.0,
+      130.0,
       170.0,
       22.0
      ],
@@ -187,7 +220,7 @@
      "numoutlets": 2,
      "patching_rect": [
       200.0,
-      150.0,
+      130.0,
       250.0,
       22.0
      ],
@@ -200,37 +233,13 @@
    },
    {
     "box": {
-     "id": "o-tgl",
-     "maxclass": "toggle",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      200.0,
-      90.0,
-      24.0,
-      24.0
-     ],
-     "outlettype": [
-      ""
-     ],
-     "presentation": 1,
-     "presentation_rect": [
-      180.0,
-      6.0,
-      24.0,
-      24.0
-     ]
-    }
-   },
-   {
-    "box": {
      "id": "o-lb",
      "maxclass": "newobj",
      "numinlets": 0,
      "numoutlets": 1,
      "patching_rect": [
-      340.0,
-      60.0,
+      120.0,
+      90.0,
       70.0,
       22.0
      ],
@@ -247,219 +256,50 @@
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      200.0,
       120.0,
-      90.0,
-      22.0
-     ],
-     "text": "qmetro 1000",
-     "outlettype": [
-      "bang"
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-3m",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 3,
-     "patching_rect": [
-      200.0,
-      190.0,
-      60.0,
-      22.0
-     ],
-     "text": "jit.3m",
-     "outlettype": [
-      "",
-      "",
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-pmin",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      150.0,
-      230.0,
-      70.0,
-      22.0
-     ],
-     "text": "prepend min",
-     "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-pmean",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      230.0,
-      230.0,
+      130.0,
       80.0,
       22.0
      ],
-     "text": "prepend mean",
+     "text": "qmetro 33",
      "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-pmax",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      320.0,
-      230.0,
-      70.0,
-      22.0
-     ],
-     "text": "prepend max",
-     "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-snap",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      20.0,
-      200.0,
-      100.0,
-      22.0
-     ],
-     "text": "snapshot~ 1000",
-     "outlettype": [
-      "float"
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-prein",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      20.0,
-      240.0,
-      70.0,
-      22.0
-     ],
-     "text": "prepend in",
-     "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-log",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 0,
-     "patching_rect": [
-      150.0,
-      290.0,
-      130.0,
-      22.0
-     ],
-     "text": "js kscope_log.js"
-    }
-   },
-   {
-    "box": {
-     "id": "o-trig",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 2,
-     "patching_rect": [
-      320.0,
-      120.0,
-      50.0,
-      22.0
-     ],
-     "text": "t b b",
-     "outlettype": [
-      "bang",
       "bang"
      ]
     }
    },
    {
     "box": {
-     "id": "o-tex",
+     "id": "o-dbgm",
      "maxclass": "newobj",
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
-      440.0,
-      210.0,
-      180.0,
+      240.0,
+      90.0,
+      80.0,
       22.0
      ],
-     "text": "jit.gl.texture kscope_ctx",
+     "text": "metro 1000",
      "outlettype": [
-      "jit_gl_texture"
+      "bang"
      ]
     }
    },
    {
     "box": {
-     "id": "o-plane",
-     "maxclass": "newobj",
-     "numinlets": 1,
+     "id": "o-dbgmsg",
+     "maxclass": "message",
+     "numinlets": 2,
      "numoutlets": 1,
      "patching_rect": [
-      440.0,
-      250.0,
-      300.0,
+      240.0,
+      120.0,
+      40.0,
       22.0
      ],
-     "text": "jit.gl.videoplane kscope_ctx @transform_reset 2",
+     "text": "dbg",
      "outlettype": [
       ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-world",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      440.0,
-      300.0,
-      170.0,
-      22.0
-     ],
-     "text": "jit.pworld kscope_ctx",
-     "outlettype": [
-      ""
-     ],
-     "presentation": 1,
-     "presentation_rect": [
-      10.0,
-      55.0,
-      280.0,
-      150.0
      ]
     }
    }
@@ -540,11 +380,23 @@
    {
     "patchline": {
      "source": [
+      "o-tgl",
+      0
+     ],
+     "destination": [
+      "o-dbgm",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
       "o-qm",
       0
      ],
      "destination": [
-      "o-trig",
+      "o-ui",
       0
      ]
     }
@@ -552,11 +404,11 @@
    {
     "patchline": {
      "source": [
-      "o-trig",
-      1
+      "o-dbgm",
+      0
      ],
      "destination": [
-      "o-mtx",
+      "o-dbgmsg",
       0
      ]
     }
@@ -564,155 +416,11 @@
    {
     "patchline": {
      "source": [
-      "o-trig",
+      "o-dbgmsg",
       0
      ],
      "destination": [
-      "o-world",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-mtx",
-      0
-     ],
-     "destination": [
-      "o-3m",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-mtx",
-      0
-     ],
-     "destination": [
-      "o-tex",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-tex",
-      0
-     ],
-     "destination": [
-      "o-plane",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-3m",
-      0
-     ],
-     "destination": [
-      "o-pmin",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-3m",
-      1
-     ],
-     "destination": [
-      "o-pmean",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-3m",
-      2
-     ],
-     "destination": [
-      "o-pmax",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-pmin",
-      0
-     ],
-     "destination": [
-      "o-log",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-pmean",
-      0
-     ],
-     "destination": [
-      "o-log",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-pmax",
-      0
-     ],
-     "destination": [
-      "o-log",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-amp",
-      0
-     ],
-     "destination": [
-      "o-snap",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-snap",
-      0
-     ],
-     "destination": [
-      "o-prein",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-prein",
-      0
-     ],
-     "destination": [
-      "o-log",
+      "o-ui",
       0
      ]
     }
