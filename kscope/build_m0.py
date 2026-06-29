@@ -99,13 +99,10 @@ def build_main():
         box("o-out", "plugout~", 20, 320, 80, 2, 0),
         box("o-osc", "cycle~ 440", 440, 90, 80, 2, 1, ["signal"]),
         box("o-amp", "*~ 0.3", 440, 120, 60, 2, 1, ["signal"]),
-        # DIAGNOSTIC: bypass pfft~ — write the tone directly into the matrix from
-        # the audio thread via jit.poke~ (value = tone, x-coord = phasor sweep).
-        box("o-phasor", "phasor~ 5", 540, 90, 70, 1, 1, ["signal"]),
-        box("o-pmul", "*~ 1024", 540, 120, 60, 2, 1, ["signal"]),
-        box("o-poke", "jit.poke~ kscope_spec 1 1", 440, 160, 170, 2, 0),
-        box("o-mtx", "jit.matrix kscope_spec 1 float32 1025", 240, 150, 240, 1, 2,
-            ["jit_matrix", ""]),
+        # jit.catch~ captures the signal into its own matrix (no named-matrix
+        # sharing) — the standard self-contained audio->matrix bridge.
+        box("o-catch", "jit.catch~ 1", 440, 160, 110, 1, 1, ["jit_matrix"]),
+        # (named jit.matrix removed — jit.catch~ owns its matrix)
         uiobj("o-tgl", "toggle", 240, 90, 24, 24, 1, 1, [""],
               extra={"presentation": 1, "presentation_rect": [180.0, 6.0, 24.0, 24.0]}),
         box("o-lb", "loadbang", 360, 50, 70, 0, 1, ["bang"]),
@@ -122,13 +119,11 @@ def build_main():
         line("o-in", 0, "o-out", 0),     # L passthrough
         line("o-in", 1, "o-out", 1),     # R passthrough
         line("o-osc", 0, "o-amp", 0),    # internal 440Hz test tone
-        line("o-amp", 0, "o-poke", 0),   # tone value -> matrix
-        line("o-phasor", 0, "o-pmul", 0),
-        line("o-pmul", 0, "o-poke", 1),  # sweeping x-coord 0..1024
+        line("o-amp", 0, "o-catch", 0),  # tone signal -> jit.catch~
         line("o-lb", 0, "o-tgl", 0),     # autostart
         line("o-tgl", 0, "o-qm", 0),
-        line("o-qm", 0, "o-mtx", 0),     # bang -> output named matrix
-        line("o-mtx", 0, "o-3m", 0),     # matrix -> min/mean/max
+        line("o-qm", 0, "o-catch", 0),   # bang -> output captured matrix
+        line("o-catch", 0, "o-3m", 0),   # matrix -> min/mean/max
         line("o-3m", 0, "o-pmin", 0),    # log ALL three stats to disambiguate
         line("o-3m", 1, "o-pmean", 0),
         line("o-3m", 2, "o-pmax", 0),

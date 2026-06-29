@@ -163,71 +163,19 @@
    },
    {
     "box": {
-     "id": "o-phasor",
+     "id": "o-catch",
      "maxclass": "newobj",
      "numinlets": 1,
      "numoutlets": 1,
-     "patching_rect": [
-      540.0,
-      90.0,
-      70.0,
-      22.0
-     ],
-     "text": "phasor~ 5",
-     "outlettype": [
-      "signal"
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-pmul",
-     "maxclass": "newobj",
-     "numinlets": 2,
-     "numoutlets": 1,
-     "patching_rect": [
-      540.0,
-      120.0,
-      60.0,
-      22.0
-     ],
-     "text": "*~ 1024",
-     "outlettype": [
-      "signal"
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-poke",
-     "maxclass": "newobj",
-     "numinlets": 2,
-     "numoutlets": 0,
      "patching_rect": [
       440.0,
       160.0,
-      170.0,
+      110.0,
       22.0
      ],
-     "text": "jit.poke~ kscope_spec 1 1"
-    }
-   },
-   {
-    "box": {
-     "id": "o-mtx",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 2,
-     "patching_rect": [
-      240.0,
-      150.0,
-      240.0,
-      22.0
-     ],
-     "text": "jit.matrix kscope_spec 1 float32 1025",
+     "text": "jit.catch~ 1",
      "outlettype": [
-      "jit_matrix",
-      ""
+      "jit_matrix"
      ]
     }
    },
@@ -461,32 +409,8 @@
       0
      ],
      "destination": [
-      "o-poke",
+      "o-catch",
       0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-phasor",
-      0
-     ],
-     "destination": [
-      "o-pmul",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-pmul",
-      0
-     ],
-     "destination": [
-      "o-poke",
-      1
      ]
     }
    },
@@ -521,7 +445,7 @@
       0
      ],
      "destination": [
-      "o-mtx",
+      "o-catch",
       0
      ]
     }
@@ -529,7 +453,7 @@
    {
     "patchline": {
      "source": [
-      "o-mtx",
+      "o-catch",
       0
      ],
      "destination": [
