@@ -12,7 +12,7 @@ var NBINS = 1024;
 var BINHZ = 44100 / 2048;
 var FMIN = 20, FMAX = 20000;
 var DB_TOP = 6, DB_BOT = -90;      // SPAN/FabFilter-style vertical range
-var SMOOTH = 0.5;                  // temporal smoothing (0 = none)
+var SMOOTH = 0.8;                  // temporal smoothing (higher = calmer)
 var FFTREF = 512;                  // 0 dBFS magnitude for 2048-pt Hann pfft~ (N/4)
 var TILT = 4.5;                    // +4.5 dB/oct @ 1kHz (SPAN/FabFilter default)
 
@@ -94,6 +94,18 @@ function paint() {
             var dbDisp = dbfs + TILT * Math.log(freq / 1000) / Math.LN2;  // +4.5 dB/oct tilt
             pts.push([px, dbToY(dbDisp, h)]);
         }
+
+        // light frequency smoothing of the curve (moving average over pixels)
+        var R = 3, sy = [];
+        for (var p = 0; p < pts.length; p++) {
+            var acc = 0, cnt = 0;
+            for (var q = -R; q <= R; q++) {
+                var idx = p + q;
+                if (idx >= 0 && idx < pts.length) { acc += pts[idx][1]; cnt++; }
+            }
+            sy.push(acc / cnt);
+        }
+        for (var p2 = 0; p2 < pts.length; p2++) pts[p2][1] = sy[p2];
 
         // filled area under the curve
         move_to(0, h);
