@@ -19,7 +19,7 @@ Copied verbatim from the spec (`specs/2026-06-28-kscope-v1-design.md`); every ta
 - **`jit.gl.mesh`, never `jit.gl.graph`** for any geometry.
 - **Window-closed throttle:** when the device window is hidden, stop the `qmetro`, the texture upload, AND the analysis.
 - **No bundled binaries** — pure Max/Jitter/gen/JS.
-- **Test targets:** a Windows laptop with a hybrid Intel/discrete GPU **and** an Apple Silicon Mac; inside a **~16-track** Live set; at buffer sizes **256 / 512 / 1024**; with the window **open and closed**; and with **1 and 3** simultaneous instances.
+- **Test targets (per available hardware):** a **5090 desktop = ceiling** (run the power-independent gates D/E/F/G here + confirm the 60fps ceiling) **and** a **mid-range laptop = floor** (run the load-sensitive gates A/B/C here — this is the machine the 30fps floor is designed against). Inside a **~16-track** Live set; at buffer sizes **256 / 512 / 1024**; with the window **open and closed**; and with **1 and 3** simultaneous instances. **macOS is OUT of M0 scope** (no Apple Silicon on hand): the OpenGL→Metal path (R5) is a **separate validation gate that must pass before any macOS distribution** — launch **Windows-first**.
 - **Visual bar:** FabFilter-class (HiDPI/Retina must look crisp, not pixel-doubled).
 - **Analysis:** 2048-pt FFT, Hann window, 4× overlap (75%).
 
@@ -416,7 +416,7 @@ git commit -m "kscope: freeze M0 device for in-Ableton gate testing"
 
 - [ ] **Step 1: Run the gate matrix**
 
-In a **~16-track** Live set, on **Windows (hybrid GPU)** and **Apple Silicon**, at buffers **256 / 512 / 1024**, window **open & closed**, **1 and 3** instances, record:
+In a **~16-track** Live set, on the **5090 desktop** (ceiling — gates D/E/F/G + 60fps confirm) and the **mid-range laptop** (floor — gates A/B/C), at buffers **256 / 512 / 1024**, window **open & closed**, **1 and 3** instances, record (macOS validation is a separate later gate per Global Constraints):
 
 | Gate | Measure | PASS criteria |
 |---|---|---|
