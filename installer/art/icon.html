@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>icon</title>
+<style>
+  :root { --signal: #e8341c; --device-line: #2a2a35; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 256px; height: 256px; overflow: hidden; }
+  body { display: grid; place-items: center; background: #00000000; }
+  .ico { width: 256px; height: 256px; border-radius: 56px; position: relative; overflow: hidden;
+    background: radial-gradient(135% 120% at 32% 18%, #1c1b25, #08080c 72%);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.06), inset 0 0 0 2px var(--device-line); display: grid; place-items: center; }
+  .tri { position: relative; border-top: 52px solid transparent; border-bottom: 52px solid transparent;
+    border-left: 84px solid var(--signal); margin-left: 16px; filter: drop-shadow(0 0 18px rgba(232,52,28,0.9)); }
+</style>
+</head>
+<body>
+  <div class="ico">
+    <span class="tri"></span>
+  </div>
+</body>
+</html>

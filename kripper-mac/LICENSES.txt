@@ -32,6 +32,51 @@ https://ffmpeg.org/download.html and via the build pages above.
 The full GPL v3 text: https://www.gnu.org/licenses/gpl-3.0.txt
 
 -------------------------------------------------------------------
+music-tempo
+-------------------------------------------------------------------
+License:  MIT
+Author:   killercrush
+Source:   https://github.com/killercrush/music-tempo  (v1.0.3)
+Vendored unmodified under vendor/music-tempo/ and used to detect each
+ripped track's tempo (BPM). Implements the Beatroot beat-tracking
+algorithm by Simon Dixon.
+
+  The MIT License (MIT)
+  Copyright (c) killercrush
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+-------------------------------------------------------------------
+pitch-detection + fourier-transform
+-------------------------------------------------------------------
+License:  MIT
+Authors:  pitch-detection © Dmitry Iv; fourier-transform © Maxime Euzière
+Source:   https://github.com/audiojs/pitch-detection
+          https://github.com/scijs/fourier-transform
+Vendored under vendor/pitch-detection/ (chroma.js + fourier-transform.js)
+and used to detect each ripped track's musical key (chroma extraction;
+the key correlation + Camelot mapping are K-Ripper's own). Both are MIT —
+permission is granted free of charge to use, copy, modify, and distribute,
+with the copyright notice retained; provided "AS IS" without warranty.
+
+-------------------------------------------------------------------
 Simple Icons / platform marks
 -------------------------------------------------------------------
 Platform icons are rendered from publicly available single-color brand

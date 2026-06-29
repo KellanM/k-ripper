@@ -5,8 +5,8 @@ Build pipeline for the three distribution artifacts:
 | Output | Builder | Runs on |
 |---|---|---|
 | `dist/K-Ripper-Windows-Setup.exe` | `build-windows.bat` | Windows |
-| `dist/K-Ripper-macOS.zip` | `build-macos-zip.sh` (or Python equivalent) | Any OS |
-| `dist/K-Ripper.dmg` | `build-dmg.sh` | macOS only (uses `hdiutil`) |
+| `dist/K-Ripper-macOS.dmg` | `build-dmg.sh` (branded — primary mac download) | macOS only (uses `hdiutil`) |
+| `dist/K-Ripper-macOS.zip` | `build-macos-zip.sh` (fallback) | Any OS |
 
 ## Source layout
 
@@ -60,17 +60,20 @@ The Python path is what's currently used; preserves Unix `0755` exec
 perms on `install.sh` and the two binaries so they're runnable after
 unzip on macOS.
 
-## macOS DMG
+## macOS DMG (primary download)
 
-**Must run on macOS.** Uses Apple's `hdiutil` to build a compressed
-disk image.
+**Must run on macOS** (uses `hdiutil`, Finder AppleScript, and `SetFile`).
+Built automatically by the release CI; the landing page links to it.
 
 ```bash
 bash installer/build-dmg.sh
 ```
 
-Output lands in `dist/K-Ripper.dmg`. Users mount it, double-click
-`install.sh`, K-Ripper lands in their User Library.
+Produces a **branded** image — custom background + volume icon from
+`installer/art/` (`dmg-bg*.png`, `kripper.icns`) — with a clean window
+showing only `install.command` (support files flagged hidden). Output:
+`dist/K-Ripper-macOS.dmg`. Users mount it and double-click
+`install.command`; K-Ripper lands in their User Library.
 
 ## Updating the build
 

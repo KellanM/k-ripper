@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>small</title>
+<style>
+  :root { --signal: #e8341c; --device-line: #2a2a35; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 2x of Inno's 55x58 modern small image. Header bar is light, so the tile
+     reads as the K-Ripper mark on white. */
+  html, body { width: 110px; height: 116px; overflow: hidden; }
+  body { background: #ffffff; display: grid; place-items: center; }
+  .mk { width: 80px; height: 80px; background: radial-gradient(130% 130% at 30% 20%, #1a1922, #08080c);
+    border: 1px solid var(--device-line); border-radius: 20px; display: grid; place-items: center;
+    box-shadow: 0 6px 16px -6px rgba(8,8,12,0.5), inset 0 1px 0 rgba(255,255,255,0.06); }
+  .mk::after { content: ""; border-top: 15px solid transparent; border-bottom: 15px solid transparent;
+    border-left: 25px solid var(--signal); margin-left: 6px; filter: drop-shadow(0 0 6px rgba(232,52,28,0.85)); }
+</style>
+</head>
+<body><div class="mk"></div></body>
+</html>

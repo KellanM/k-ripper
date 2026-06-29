@@ -39,16 +39,24 @@ jobs:
           cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/lib.mjs \
              kripper/package.json kripper/LICENSES.txt kripper-mac/
           rm -rf kripper-mac/assets && cp -r kripper/assets kripper-mac/
-      - name: Build zip
+          rm -rf kripper-mac/vendor && cp -r kripper/vendor kripper-mac/
+      - name: Build zip (fallback download)
         run: |
           mkdir -p dist staging/K-Ripper
           cp -R kripper-mac/* staging/K-Ripper/
           chmod +x staging/K-Ripper/install.command staging/K-Ripper/bin/*
           (cd staging && zip -qr ../dist/K-Ripper-macOS.zip K-Ripper)
+      - name: Build branded DMG
+        # Non-fatal: if the Finder/hdiutil dressing ever flakes on the runner,
+        # still ship the zip fallback rather than blocking the whole release.
+        continue-on-error: true
+        run: bash installer/build-dmg.sh
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: dist/K-Ripper-macOS.zip
+          path: |
+            dist/K-Ripper-macOS.zip
+            dist/K-Ripper-macOS.dmg
 
   release:
     needs: [build-windows, build-macos]
@@ -61,5 +69,6 @@ jobs:
         with:
           files: |
             artifacts/windows/K-Ripper-Windows-Setup.exe
+            artifacts/macos/K-Ripper-macOS.dmg
             artifacts/macos/K-Ripper-macOS.zip
           generate_release_notes: true

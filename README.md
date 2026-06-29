@@ -20,7 +20,7 @@ sketchy download sites, no leaving Ableton.
 | Platform | Download | Then |
 |----------|----------|------|
 | **Windows** | `K-Ripper-Windows-Setup.exe` | Double-click. SmartScreen may warn (unsigned) → **More info → Run anyway**. |
-| **macOS** | `K-Ripper-macOS.zip` | Unzip, double-click `install.command`. Gatekeeper may warn → **System Settings → Privacy & Security → Open Anyway**. |
+| **macOS** | `K-Ripper-macOS.dmg` | Open the disk image, double-click `install.command`. Gatekeeper may warn → **System Settings → Privacy & Security → Open Anyway**. |
 
 Both are on the [**Releases**](https://github.com/KellanM/k-ripper/releases/latest)
 page. After installing, open Live → browser → **User Library → Audio Effects →

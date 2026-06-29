@@ -9,6 +9,8 @@
 //   status <symbol>   status text from engine
 //   track <symbol>    resolved track name from engine
 //   source <symbol>   URL actually being ripped (lights the platform icon)
+//   bpm <symbol>      detected tempo (int, or "none") -> labels the clip
+//   key <camelot> <label>  detected key, e.g. "8A Am" (or "none") -> labels clip
 //   done <symbol>     final file path from engine -> load into clip
 //   cancelled         rip aborted by user
 //   reset             engine (re)started -> snap UI to idle
@@ -30,6 +32,10 @@ outlets = 1;
 
 var currentUrl = "";
 var ripping = false;
+var lastTrack = "";   // resolved track name from engine, for the clip label
+var lastBpm = 0;      // detected tempo for this rip (0 = unknown)
+var lastKey = "";     // detected key label, e.g. "Am" ("" = unknown)
+var lastCamelot = ""; // detected Camelot code, e.g. "8A" ("" = unknown)
 
 var IDLE_TEXT = "ready";
 var MAX_STATUS_CHARS = 34; // what fits in the bbox; full text goes to console
@@ -151,6 +157,10 @@ function rip() {
     ripping = true;
     setButton("CANCEL");
     setTrack("");
+    lastTrack = "";
+    lastBpm = 0;
+    lastKey = "";
+    lastCamelot = "";
     resetIcons();
     var a = named("kr_art");
     if (a) a.message("hidden", 1);
@@ -179,7 +189,26 @@ function progress(pct) {
 }
 
 function track() {
-    setTrack(Array.prototype.slice.call(arguments).join(" "));
+    lastTrack = Array.prototype.slice.call(arguments).join(" ");
+    setTrack(lastTrack);
+}
+
+// Detected tempo from the engine, sent just before `done`. "none" -> unknown.
+function bpm(v) {
+    var s = String(v);
+    lastBpm = (s === "none") ? 0 : (parseInt(s, 10) || 0);
+}
+
+// Detected key from the engine: "<camelot> <label>" (e.g. "8A Am"), or "none".
+function key() {
+    var a = Array.prototype.slice.call(arguments);
+    if (a.length >= 2) {
+        lastCamelot = String(a[0]);
+        lastKey = String(a[1]);
+    } else {
+        lastCamelot = "";
+        lastKey = "";
+    }
 }
 
 function art() {
@@ -238,6 +267,50 @@ function done() {
     loadIntoParentTrack(p);
 }
 
+// Read a LiveAPI property that may come back as a bare value or a 1+ element
+// array, and coerce to a Number.
+function apiNum(v) {
+    if (v == null) return NaN;
+    if (typeof v !== "string" && v.length !== undefined) return Number(v[v.length - 1]);
+    return Number(v);
+}
+
+// Make the clip's Seg.BPM field read the detected tempo while keeping Warp OFF
+// for native playback. Verified behavior: enabling warp, adding a single warp
+// marker that defines a uniform tempo, then disabling warp leaves the clip
+// playing natively AND displaying the marker-derived BPM. Best-effort — never
+// alters the audio, always ends with warp off.
+function applyDetectedTempo(clip, bpm) {
+    var sampleLength = apiNum(clip.get("sample_length"));
+    var sampleRate   = apiNum(clip.get("sample_rate"));
+    if (!(sampleLength > 0) || !(sampleRate > 0)) {
+        clip.set("warping", 0);   // no sample info — just leave it native
+        return;
+    }
+
+    clip.set("warping", 1);                          // markers require warp on
+    try { clip.set("warp_mode", 6); } catch (e) {}   // Complex Pro = least artifacts
+
+    // One marker at (st, st*bpm/60) makes the whole segment back to the start
+    // marker (0,0) play at exactly `bpm`. Anchor near the END so the uniform
+    // tempo spans the full clip (Live drops a tiny trailing "shadow" segment of
+    // its own just past it). Mid-anchor fallback for sub-second samples.
+    var durSec = sampleLength / sampleRate;
+    var st = durSec > 1.0 ? (durSec - 0.25) : (durSec * 0.5);
+    var bt = st * bpm / 60.0;
+
+    try {
+        var d = new Dict();
+        d.set("beat_time", bt);
+        d.set("sample_time", st);
+        clip.call("add_warp_marker", d);
+    } catch (e) {
+        post("[k-ripper] could not set clip tempo: " + (e && e.message ? e.message : e) + "\n");
+    }
+
+    clip.set("warping", 0);                          // back to native playback
+}
+
 function loadIntoParentTrack(filePath) {
     try {
         var device = new LiveAPI(null, "this_device");
@@ -264,12 +337,31 @@ function loadIntoParentTrack(filePath) {
             var hasClip = slot.get("has_clip");
             if (hasClip && hasClip[0] == 0) {
                 slot.call("create_audio_clip", filePath);
-                // Disable warp so songs play at native tempo.
                 try {
                     var clip = new LiveAPI(null, trackPath + " clip_slots " + i + " clip");
-                    clip.set("warping", 0);
-                } catch (e) {}
-                setStatus("✓ slot " + (i + 1));
+                    // Experimental: try to make the Seg.BPM field show the real
+                    // tempo while keeping native playback. Falls back to plain
+                    // warp-off if there's no BPM. Always ends with warp OFF.
+                    if (lastBpm > 0) {
+                        applyDetectedTempo(clip, lastBpm);
+                    } else {
+                        clip.set("warping", 0);
+                    }
+                    // Label the clip with its detected BPM + key regardless
+                    // (reliable surface even if the Seg.BPM field can't update).
+                    if (lastTrack && (lastBpm > 0 || lastCamelot)) {
+                        var nm = lastTrack;
+                        if (lastBpm > 0) nm += " · " + lastBpm + " BPM";
+                        if (lastCamelot) nm += " · " + (lastKey ? lastKey + " " : "") + lastCamelot;
+                        clip.set("name", nm);
+                    }
+                } catch (e) {
+                    post("[k-ripper] clip setup error: " + (e && e.message ? e.message : e) + "\n");
+                }
+                var st = "✓ slot " + (i + 1);
+                if (lastBpm > 0) st += " · " + lastBpm + " BPM";
+                if (lastCamelot) st += " · " + lastCamelot;
+                setStatus(st);
                 setDot(DOT_OK);
                 return;
             }

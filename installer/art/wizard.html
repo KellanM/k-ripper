@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>wizard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --signal: #e8341c; --device-text: #eeeef1; --device-line: #2a2a35;
+    --display: "Bricolage Grotesque", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 2x of Inno's 164x314 modern wizard image for crisp HiDPI */
+  html, body { width: 328px; height: 628px; overflow: hidden; }
+  body { font-family: var(--display); color: var(--device-text);
+    background: radial-gradient(130% 80% at 50% 0%, #1a1922, #0c0b10 70%);
+    position: relative; padding: 52px 40px; display: flex; flex-direction: column; }
+  .bg { position: absolute; inset: 0; opacity: 0.5; }
+  .bg svg { width: 100%; height: 100%; }
+  .edge { position: absolute; top: 0; right: 0; bottom: 0; width: 3px; background: var(--signal); box-shadow: 0 0 24px 2px rgba(232,52,28,0.55); }
+
+  .wm { position: relative; display: flex; align-items: center; gap: 14px; }
+  .wm .mk { width: 46px; height: 46px; background: #08080c; border: 1px solid var(--device-line); border-radius: 12px; display: grid; place-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+  .wm .mk::after { content: ""; border-top: 9px solid transparent; border-bottom: 9px solid transparent; border-left: 15px solid var(--signal); margin-left: 4px; filter: drop-shadow(0 0 5px rgba(232,52,28,0.8)); }
+  .wm .wd { font-weight: 800; font-size: 27px; letter-spacing: 0.04em; }
+
+  .spacer { flex: 1; }
+  h1 { position: relative; font-weight: 800; font-size: 54px; line-height: 0.94; letter-spacing: -0.04em; }
+  h1 em { font-style: normal; color: var(--signal); }
+
+  .scope { position: relative; height: 130px; margin-top: 40px; border-radius: 14px; overflow: hidden;
+    background: radial-gradient(120% 140% at 50% 0%, #14131a, #08080c); border: 1px solid var(--device-line); }
+  .scope svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+  <div class="bg"><svg id="bg" viewBox="0 0 328 628" preserveAspectRatio="none"></svg></div>
+  <div class="wm"><span class="mk"></span><span class="wd">K-RIPPER</span></div>
+  <div class="spacer"></div>
+  <h1>Rip audio<br><em>into</em> Ableton.</h1>
+  <div class="scope"><svg id="scope" viewBox="0 0 248 130" preserveAspectRatio="none"></svg></div>
+  <div class="spacer"></div>
+  <div class="edge"></div>
+<script>
+  function wave(el, w, h, amp, density, glow) {
+    var pts = [];
+    for (var i = 0; i <= w; i += 1) {
+      var p = i / w, shape = 0.45 + 0.55 * Math.sin(p * Math.PI);
+      var v = Math.sin(p * density + 0.4) * 0.5 + Math.sin(p * density * 2.2 + 1.1) * 0.3
+            + Math.sin(p * density * 4.3 + 2.0) * 0.16 + Math.sin(p * density * 8 + 0.6) * 0.08;
+      pts.push(i + "," + (h / 2 + v * shape * amp).toFixed(1));
+    }
+    var ns = "http://www.w3.org/2000/svg";
+    var pl = document.createElementNS(ns, "polyline");
+    pl.setAttribute("points", pts.join(" "));
+    pl.setAttribute("fill", "none");
+    pl.setAttribute("stroke", glow ? "#e8341c" : "rgba(232,52,28,0.42)");
+    pl.setAttribute("stroke-width", glow ? "2.2" : "2.4");
+    pl.setAttribute("stroke-linejoin", "round");
+    if (glow) pl.setAttribute("filter", "drop-shadow(0 0 6px rgba(232,52,28,0.85))");
+    el.appendChild(pl);
+  }
+  wave(document.getElementById("scope"), 248, 130, 36, 60, true);
+  wave(document.getElementById("bg"), 328, 628, 150, 26, false);
+</script>
+</body>
+</html>
