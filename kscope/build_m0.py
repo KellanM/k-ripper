@@ -103,10 +103,9 @@ def build_main():
         uiobj("o-tgl", "toggle", 240, 90, 24, 24, 1, 1, [""],
               extra={"presentation": 1, "presentation_rect": [180.0, 6.0, 24.0, 24.0]}),
         box("o-lb", "loadbang", 360, 50, 70, 0, 1, ["bang"]),
-        box("o-qm", "qmetro 200", 240, 120, 80, 1, 1, ["bang"]),
+        box("o-qm", "qmetro 500", 240, 120, 80, 1, 1, ["bang"]),
         box("o-3m", "jit.3m", 240, 200, 60, 1, 3, ["", "", ""]),
-        box("o-pre", "prepend mag", 240, 240, 90, 1, 1, [""]),
-        box("o-print", "print kscope", 240, 270, 90, 1, 0),
+        box("o-log", "js kscope_log.js", 240, 250, 130, 1, 0),
     ]
     lines = [
         line("o-in", 0, "o-out", 0),     # L passthrough
@@ -116,8 +115,7 @@ def build_main():
         line("o-tgl", 0, "o-qm", 0),
         line("o-qm", 0, "o-mtx", 0),     # bang -> output named matrix
         line("o-mtx", 0, "o-3m", 0),     # matrix -> min/mean/max
-        line("o-3m", 2, "o-pre", 0),     # max -> prepend
-        line("o-pre", 0, "o-print", 0),  # -> console
+        line("o-3m", 2, "o-log", 0),     # max -> js post() -> MaxPlug.log
     ]
     return patcher(boxes, lines, present=True, desc="K-Scope M0 spine test (analysis half)")
 

@@ -216,7 +216,7 @@
       80.0,
       22.0
      ],
-     "text": "qmetro 200",
+     "text": "qmetro 500",
      "outlettype": [
       "bang"
      ]
@@ -244,35 +244,17 @@
    },
    {
     "box": {
-     "id": "o-pre",
-     "maxclass": "newobj",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "patching_rect": [
-      240.0,
-      240.0,
-      90.0,
-      22.0
-     ],
-     "text": "prepend mag",
-     "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "o-print",
+     "id": "o-log",
      "maxclass": "newobj",
      "numinlets": 1,
      "numoutlets": 0,
      "patching_rect": [
       240.0,
-      270.0,
-      90.0,
+      250.0,
+      130.0,
       22.0
      ],
-     "text": "print kscope"
+     "text": "js kscope_log.js"
     }
    }
   ],
@@ -368,19 +350,7 @@
       2
      ],
      "destination": [
-      "o-pre",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "o-pre",
-      0
-     ],
-     "destination": [
-      "o-print",
+      "o-log",
       0
      ]
     }
