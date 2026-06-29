@@ -83,15 +83,31 @@ function paint() {
             } catch (e) {}
         }
 
-        // filled spectrum (1px resolution -> reads as a smooth curve)
-        set_source_rgba(0.91, 0.22, 0.12, 0.85);
-        for (var px = 0; px < w; px += 1) {
+        // build the spectrum polyline (log-freq X, tilted dBFS Y, bin-interpolated)
+        var pts = [];
+        for (var px = 0; px <= w; px += 1) {
             var freq = FMIN * Math.pow(FMAX / FMIN, px / w);
-            var dbfs = magToDb(readbin(Math.round(freq / BINHZ)));
+            var binF = freq / BINHZ;
+            var b0 = Math.floor(binF), frac = binF - b0;
+            var mag = readbin(b0) * (1 - frac) + readbin(b0 + 1) * frac;  // interpolate
+            var dbfs = magToDb(mag);
             var dbDisp = dbfs + TILT * Math.log(freq / 1000) / Math.LN2;  // +4.5 dB/oct tilt
-            var y = dbToY(dbDisp, h);
-            if (y < h - 0.5) { rectangle(px, y, 1, h - y); fill(); }
+            pts.push([px, dbToY(dbDisp, h)]);
         }
+
+        // filled area under the curve
+        move_to(0, h);
+        for (var i = 0; i < pts.length; i++) line_to(pts[i][0], pts[i][1]);
+        line_to(w, h); close_path();
+        set_source_rgba(0.91, 0.22, 0.12, 0.55);
+        fill();
+
+        // bright curve outline on top
+        set_source_rgba(1.0, 0.42, 0.28, 0.95);
+        set_line_width(1.5);
+        move_to(pts[0][0], pts[0][1]);
+        for (var j = 1; j < pts.length; j++) line_to(pts[j][0], pts[j][1]);
+        stroke();
     }
 }
 
