@@ -111,7 +111,9 @@ def build_main():
         box("o-lb", "loadbang", 360, 50, 70, 0, 1, ["bang"]),
         box("o-qm", "qmetro 1000", 240, 120, 80, 1, 1, ["bang"]),
         box("o-3m", "jit.3m", 240, 200, 60, 1, 3, ["", "", ""]),
-        box("o-premag", "prepend mag", 240, 240, 90, 1, 1, [""]),
+        box("o-pmin", "prepend min", 180, 240, 70, 1, 1, [""]),
+        box("o-pmean", "prepend mean", 260, 240, 80, 1, 1, [""]),
+        box("o-pmax", "prepend max", 350, 240, 70, 1, 1, [""]),
         box("o-snap", "snapshot~ 1000", 60, 200, 100, 1, 1, ["float"]),
         box("o-prein", "prepend in", 60, 240, 70, 1, 1, [""]),
         box("o-log", "js kscope_log.js", 150, 290, 130, 1, 0),
@@ -127,8 +129,12 @@ def build_main():
         line("o-tgl", 0, "o-qm", 0),
         line("o-qm", 0, "o-mtx", 0),     # bang -> output named matrix
         line("o-mtx", 0, "o-3m", 0),     # matrix -> min/mean/max
-        line("o-3m", 2, "o-premag", 0),  # max -> label "mag"
-        line("o-premag", 0, "o-log", 0),
+        line("o-3m", 0, "o-pmin", 0),    # log ALL three stats to disambiguate
+        line("o-3m", 1, "o-pmean", 0),
+        line("o-3m", 2, "o-pmax", 0),
+        line("o-pmin", 0, "o-log", 0),
+        line("o-pmean", 0, "o-log", 0),
+        line("o-pmax", 0, "o-log", 0),
         line("o-amp", 0, "o-snap", 0),   # probe the test tone going into the FFT
         line("o-snap", 0, "o-prein", 0),
         line("o-prein", 0, "o-log", 0),  # label "in" -> js post()

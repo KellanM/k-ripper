@@ -313,17 +313,53 @@
    },
    {
     "box": {
-     "id": "o-premag",
+     "id": "o-pmin",
      "maxclass": "newobj",
      "numinlets": 1,
      "numoutlets": 1,
      "patching_rect": [
+      180.0,
       240.0,
-      240.0,
-      90.0,
+      70.0,
       22.0
      ],
-     "text": "prepend mag",
+     "text": "prepend min",
+     "outlettype": [
+      ""
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-pmean",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      260.0,
+      240.0,
+      80.0,
+      22.0
+     ],
+     "text": "prepend mean",
+     "outlettype": [
+      ""
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "o-pmax",
+     "maxclass": "newobj",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "patching_rect": [
+      350.0,
+      240.0,
+      70.0,
+      22.0
+     ],
+     "text": "prepend max",
      "outlettype": [
       ""
      ]
@@ -506,10 +542,10 @@
     "patchline": {
      "source": [
       "o-3m",
-      2
+      0
      ],
      "destination": [
-      "o-premag",
+      "o-pmin",
       0
      ]
     }
@@ -517,7 +553,55 @@
    {
     "patchline": {
      "source": [
-      "o-premag",
+      "o-3m",
+      1
+     ],
+     "destination": [
+      "o-pmean",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-3m",
+      2
+     ],
+     "destination": [
+      "o-pmax",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-pmin",
+      0
+     ],
+     "destination": [
+      "o-log",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-pmean",
+      0
+     ],
+     "destination": [
+      "o-log",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "o-pmax",
       0
      ],
      "destination": [
