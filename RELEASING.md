@@ -34,7 +34,7 @@ Then mirror the cross-platform device files into the Mac bundle and build:
 python kripper/make_amxd.py kripper/K-Ripper.maxpat kripper/K-Ripper.amxd audio_effect
 
 # mirror device + scripts into the Mac bundle (everything except bin/)
-cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/lib.mjs \
+cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/analysis-worker.mjs kripper/lib.mjs \
    kripper/package.json kripper/LICENSES.txt kripper-mac/
 rm -rf kripper-mac/assets kripper-mac/vendor
 cp -r kripper/assets kripper/vendor kripper-mac/   # vendor = music-tempo + pitch-detection

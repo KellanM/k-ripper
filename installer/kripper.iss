@@ -7,7 +7,7 @@
 ; admin rights required.
 
 #define MyAppName "K-Ripper"
-#define MyAppVersion "0.4.0"
+#define MyAppVersion "0.4.1"
 #define MyAppPublisher "K-Ripper"
 #define MyAppURL "https://github.com/"
 
@@ -50,6 +50,7 @@ Source: "..\kripper\LICENSES.txt";          DestDir: "{app}";        Flags: igno
 Source: "art\kripper.ico";                  DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.js";            DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\kripper.mjs";           DestDir: "{app}";        Flags: ignoreversion
+Source: "..\kripper\analysis-worker.mjs";   DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\lib.mjs";               DestDir: "{app}";        Flags: ignoreversion
 Source: "..\kripper\vendor\*";              DestDir: "{app}\vendor"; Flags: ignoreversion recursesubdirs
 Source: "..\kripper\package.json";          DestDir: "{app}";        Flags: ignoreversion
