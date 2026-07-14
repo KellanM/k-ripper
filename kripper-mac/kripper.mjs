@@ -276,6 +276,11 @@ function runAnalysis(wavPath) {
     try {
       worker = new Worker(new URL("./analysis-worker.mjs", import.meta.url), {
         workerData: { wavPath, ffmpegPath: FFMPEG },
+        // Node for Max forks this process with --import <its loader>, and
+        // workers inherit execArgv. That loader calls process.send, which
+        // doesn't exist in a worker thread — the worker dies on boot and
+        // analysis silently yields none/none. Start the worker clean.
+        execArgv: [],
       });
     } catch (e) {
       Max.post(`[k-ripper] analysis unavailable: ${e && e.message ? e.message : e}`);
