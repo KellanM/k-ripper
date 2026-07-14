@@ -20,33 +20,13 @@
 
 import Max from "max-api";
 import { spawn, exec } from "child_process";
+import { Worker } from "worker_threads";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
-import { createRequire } from "module";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { AUDIO_EXT, extractUrl, pickAudio, pickArt, stripExt, wavName, parseProgress, classifyError, isNewer, ffmpegAnalysisArgs, finalizeBpm, detectKeyFromChroma } from "./lib.mjs";
-
-// music-tempo is a CommonJS module vendored under ./vendor (no npm install at
-// runtime — the device ships self-contained). createRequire lets this ESM
-// engine pull it in.
-const require = createRequire(import.meta.url);
-let MusicTempo = null;
-try {
-  MusicTempo = require("./vendor/music-tempo/MusicTempo.js");
-} catch (e) {
-  // Tempo detection is a nice-to-have; a missing/broken vendor dir must never
-  // stop the device from ripping. Rips just won't carry a BPM label.
-  Max.post(`[k-ripper] tempo detection unavailable: ${e && e.message ? e.message : e}`);
-}
-
-// chroma (for key detection) is ESM — load it without blocking module init, and
-// degrade gracefully if the vendor dir is missing. Resolves long before any rip.
-let chroma = null;
-const chromaReady = import("./vendor/pitch-detection/chroma.js")
-  .then((m) => { chroma = m.default; })
-  .catch((e) => { Max.post(`[k-ripper] key detection unavailable: ${e && e.message ? e.message : e}`); });
+import { AUDIO_EXT, extractUrl, pickAudio, pickArt, stripExt, wavName, parseProgress, classifyError, isNewer } from "./lib.mjs";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -79,7 +59,7 @@ const YTDLP_TIMEOUT_MS = 30 * 60 * 1000; // 30 min — covers multi-hour DJ sets
 const FFMPEG_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Build version. Bump this together with the installer's MyAppVersion.
-const KRIPPER_VERSION = "0.4.0";
+const KRIPPER_VERSION = "0.4.1";
 
 // Update check: on load, the device fetches a tiny JSON manifest and, if a
 // newer version is published, nudges the user in the status line. This is how
@@ -273,82 +253,55 @@ async function convertToWav(srcPath, destDir) {
   return wavPath;
 }
 
-// Decode a window of the finished WAV to mono 44.1kHz float PCM, shared by the
-// tempo and key analysis so the file is only decoded once. Best-effort: any
-// failure resolves to null. Never throws.
-function decodeAnalysisWindow(wavPath) {
+// Tempo + key analysis runs in a WORKER THREAD (analysis-worker.mjs), never
+// on this thread. The analysis is seconds of synchronous DSP; run here it
+// blocks the event loop, starves Node for Max's socket keepalive, Max tears
+// the connection down, and the child exits before `done` can land — the clip
+// silently never appears (root-caused 2026-07-13). Best-effort: any worker
+// failure or timeout resolves { bpm: null, keyInfo: null }.
+let currentWorker = null;
+
+function runAnalysis(wavPath) {
   return new Promise((resolve) => {
-    const args = ffmpegAnalysisArgs(wavPath);
-    let child;
-    try {
-      child = spawn(FFMPEG, args, { windowsHide: true, detached: process.platform !== "win32" });
-    } catch { resolve(null); return; }
-    currentChild = child;
-
-    const chunks = [];
-    let bytes = 0;
-    let done = false;
-    const finish = (val) => {
-      if (done) return;
-      done = true;
+    let settled = false;
+    let timer = null;
+    const finish = (v) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
-      if (currentChild === child) currentChild = null;
-      resolve(val);
+      if (currentWorker === worker) currentWorker = null;
+      resolve(v);
     };
-    // Hard ceiling so a pathological decode can't wedge the device.
-    const timer = setTimeout(() => { killTree(child); finish(null); }, 60 * 1000);
-
-    child.stdout.on("data", (b) => { chunks.push(b); bytes += b.length; });
-    child.stderr.on("data", () => {});
-    child.on("error", () => finish(null));
-    child.on("close", () => {
-      // Need a few seconds of audio to trust any analysis.
-      if (bytes < 44100 * 4 * 5) { finish(null); return; }
-      try {
-        const buf = Buffer.concat(chunks, bytes);
-        finish(new Float32Array(buf.buffer, buf.byteOffset, Math.floor(buf.length / 4)));
-      } catch { finish(null); }
-    });
-  });
-}
-
-// Tempo from decoded samples via music-tempo. Integer BPM, or null.
-function detectBpmFrom(samples) {
-  if (!MusicTempo || !samples) return null;
-  try {
-    const mt = new MusicTempo(Array.from(samples));
-    return finalizeBpm(mt && mt.tempo);
-  } catch (e) {
-    Max.post(`[k-ripper] tempo analysis failed: ${e && e.message ? e.message : e}`);
-    return null;
-  }
-}
-
-// Musical key: average NNLS chroma across frames (count capped to bound time),
-// then Krumhansl-Schmuckler with Sha'ath profiles. Returns {label, camelot,
-// confidence} or null — including for low-confidence/atonal material, where a
-// guessed key is worse than none.
-function detectKeyFrom(samples) {
-  if (!chroma || !samples || samples.length < 8192) return null;
-  try {
-    const N = 8192;
-    const total = Math.floor(samples.length / N);
-    const step = N * Math.max(1, Math.ceil(total / 300));
-    const acc = new Float64Array(12);
-    let nf = 0;
-    for (let i = 0; i + N <= samples.length; i += step) {
-      const c = chroma(samples.subarray(i, i + N), { fs: 44100, method: "nnls" });
-      for (let k = 0; k < 12; k++) acc[k] += c[k];
-      nf++;
+    let worker;
+    try {
+      worker = new Worker(new URL("./analysis-worker.mjs", import.meta.url), {
+        workerData: { wavPath, ffmpegPath: FFMPEG },
+      });
+    } catch (e) {
+      Max.post(`[k-ripper] analysis unavailable: ${e && e.message ? e.message : e}`);
+      resolve({ bpm: null, keyInfo: null });
+      return;
     }
-    if (nf === 0) return null;
-    for (let k = 0; k < 12; k++) acc[k] /= nf;
-    const r = detectKeyFromChroma(acc, "shaath");
-    return r && r.confidence >= 0.55 ? r : null;
-  } catch (e) {
-    Max.post(`[k-ripper] key analysis failed: ${e && e.message ? e.message : e}`);
-    return null;
-  }
+    currentWorker = worker;
+    // Hard ceiling so a pathological analysis can never wedge a rip.
+    timer = setTimeout(() => {
+      try { worker.terminate(); } catch {}
+      finish({ bpm: null, keyInfo: null });
+    }, 120 * 1000);
+    worker.on("message", (m) => {
+      if (m && m.type === "log") {
+        Max.post(`[k-ripper] ${m.msg}`);
+      } else if (m && m.type === "result") {
+        finish({ bpm: m.bpm ?? null, keyInfo: m.keyInfo ?? null });
+        try { worker.terminate(); } catch {}
+      }
+    });
+    worker.on("error", (e) => {
+      Max.post(`[k-ripper] analysis worker error: ${e && e.message ? e.message : e}`);
+      finish({ bpm: null, keyInfo: null });
+    });
+    worker.on("exit", () => finish({ bpm: null, keyInfo: null }));
+  });
 }
 
 const STAGE_DIR = path.join(DOWNLOADS, ".staging");
@@ -411,16 +364,13 @@ Max.addHandler("rip", async (rawUrl) => {
     }
 
     // Analyze the finished WAV for tempo + key so the clip lands labeled.
-    // Decoded once, best-effort; never blocks the result.
+    // Runs in a worker thread — the event loop (and Max's socket) stays live.
     Max.outlet("status", "analyzing tempo + key...");
-    const samples = await decodeAnalysisWindow(outPath);
+    const { bpm, keyInfo } = await runAnalysis(outPath);
     if (cancelRequested) {
       Max.outlet("cancelled");
       return;
     }
-    await chromaReady;
-    const bpm = detectBpmFrom(samples);
-    const keyInfo = detectKeyFrom(samples);
     Max.outlet("bpm", bpm == null ? "none" : bpm);
     if (keyInfo) Max.outlet("key", keyInfo.camelot, keyInfo.label);
     else Max.outlet("key", "none");
@@ -446,6 +396,7 @@ Max.addHandler("cancel", () => {
   if (!busy) return;
   cancelRequested = true;
   killTree(currentChild);
+  if (currentWorker) { try { currentWorker.terminate(); } catch {} }
 });
 
 Max.addHandler("ping", () => {
