@@ -5,9 +5,11 @@
 
 ## Summary
 
-A standalone local web app version of the K-Ripper Max for Live device. A
-zero-dependency Node server (reusing the repo's bundled yt-dlp/ffmpeg and
-existing analysis code) serves a browser UI at `http://127.0.0.1:8420`.
+A standalone local web app version of the K-Ripper Max for Live device,
+living entirely in a new **`kripper-web/`** folder. A zero-dependency Node
+server (with its own copies of yt-dlp/ffmpeg and the analysis code, seeded
+from `kripper/`) serves a browser UI at `http://127.0.0.1:8420`.
+**`kripper/` and `kripper-mac/` are not modified in any way.**
 Users paste a URL (track, or a playlist/set), and files download at the
 highest available fidelity — the **original stream, untouched** (no
 transcoding). Finished files land in `~/Music/K-Ripper`, with BPM/key
@@ -23,42 +25,59 @@ analysis, cover art, and a queue/history UI.
 | Features (v1) | Playlist/set support, download queue + session history, cover art + metadata display, BPM + key analysis. |
 | Packaging | Double-click launcher (`.bat` / `.command`) that starts the server and opens the browser. Windows + macOS. |
 | Stack | Vanilla Node (`node:http`) + hand-written static UI. No frameworks, no build step, no npm dependencies. |
+| Isolation | Fully self-contained `kripper-web/` folder. Files (lib, analysis worker, vendor analyzers, binaries, brand assets) are **copied** from `kripper/` as a starting point; the device folders are never touched. Git dedups identical blobs, so the repo doesn't grow by the binary size. |
 
 ## Architecture
 
-### Shared engine, two frontends
+### Self-contained folder, engine modeled on the device
 
-The rip pipeline is extracted from `kripper/kripper.mjs` into a new
-**`kripper/engine.mjs`** — a Max-free module:
+`kripper-web/` is a complete, independent copy of everything it needs.
+Seed files are **copied** from `kripper/` (and `kripper-mac/bin/` for the
+macOS binaries) to speed up development; after the copy they evolve
+independently. The device folders are never modified.
 
 ```
-engine.rip(url, { emit, outputDir, ytdlpPath, ffmpegPath, convertToWav: false })
+kripper-web/
+├── package.json               new ({ "type": "module" }, no deps)
+├── server.mjs                 new — http server, routes, SSE hub
+├── engine.mjs                 new — rip pipeline (modeled on kripper.mjs, Max-free)
+├── queue.mjs                  new — serial job queue state machine
+├── weblib.mjs                 new — web-only pure helpers (playlist parsing, etc.)
+├── lib.mjs                    copied verbatim from kripper/lib.mjs
+├── analysis-worker.mjs        copied from kripper/ (wavPath → audioPath rename)
+├── vendor/                    copied (music-tempo, pitch-detection)
+├── bin/                       copied: yt-dlp.exe, ffmpeg.exe (win) +
+│                              yt-dlp, ffmpeg-x64, ffmpeg-arm64 (mac)
+├── public/                    new UI (index.html, style.css, app.js)
+│   └── assets/                copied brand art from kripper/assets/
+├── Start K-Ripper Web.bat / .command
+└── README.md
+```
+
+The engine exposes:
+
+```
+engine.rip(url, { emit, jobId, outputDir, ytdlpPath, ffmpegPath })
   → Promise<{ audioPath, artPath, bpm, keyInfo }>
 ```
 
-- `emit(event, ...args)` receives the existing event vocabulary:
+- `emit(event, ...args)` receives the device's event vocabulary:
   `status`, `progress`, `track`, `art`, `bpm`, `key`, `done`, `cancelled`,
-  `error` — identical semantics to today's Max outlets.
+  `error` — identical semantics to the Max outlets.
 - The engine owns: yt-dlp spawn + args (retries, concurrent fragments,
-  `--no-playlist` per job, thumbnail conversion), staging-dir resolution,
-  kill-tree cancellation, timeouts, optional WAV conversion (used by the
-  device, skipped by the web app), and the analysis worker
-  (`analysis-worker.mjs` in a worker thread with `execArgv: []`).
-- `kripper/kripper.mjs` becomes a thin Max adapter: clipboard reading,
-  `Max.addHandler`/`Max.outlet` forwarding, yt-dlp self-update, and the
-  version manifest check. Behavior of the device must be unchanged.
-- `kripper-web/` imports `engine.mjs`, `lib.mjs`, `analysis-worker.mjs`,
-  `vendor/`, and spawns the binaries in `kripper/bin/` (or `kripper-mac/bin/`
-  on macOS) — nothing is duplicated.
-- The device installer file-set gains one file (`engine.mjs`) on both
-  platforms (see `packaging-m4l-installers` skill when releasing).
+  `--no-playlist` per job, thumbnail conversion), per-job staging dirs,
+  kill-tree cancellation, timeouts, and the analysis worker
+  (worker thread, `execArgv: []`). **No WAV conversion step exists.**
+- Binary paths resolve per platform inside `bin/` exactly like the device's
+  `resolveFfmpeg()` does.
 
 ### Analysis on original formats
 
-`analysis-worker.mjs` already decodes its input via ffmpeg
+The copied `analysis-worker.mjs` already decodes its input via ffmpeg
 (`ffmpegAnalysisArgs`), which is format-agnostic — it accepts the original
-m4a/opus/mp3 directly. The `wavPath` workerData name is renamed to
-`audioPath`; no pipeline change.
+m4a/opus/mp3 directly. In the web copy, the `wavPath` workerData name is
+renamed to `audioPath`; no pipeline change. (The device's copy keeps its
+name — the folders are independent.)
 
 ## Web server — `kripper-web/server.mjs`
 
@@ -138,11 +157,14 @@ reusing the k-ripper brand assets (`kripper/assets/`).
 ## Testing
 
 - New pure helpers get unit tests alongside the existing `lib.mjs` test
-  style: playlist-enumeration output parsing, queue state transitions
-  (queued → running → done/cancelled/error), port-fallback logic.
-- Engine extraction is regression-checked by loading the M4L device in
-  Live after the refactor and performing a full rip — behavior must be
-  identical (status flow, clip lands, BPM/key shown).
+  style (`node --test test/`): playlist-enumeration output parsing, queue
+  state transitions (queued → running → done/cancelled/error), art-file
+  name validation.
+- The engine gets an integration test that injects fake `ytdlpPath` /
+  `ffmpegPath` (small Node scripts that emit progress lines and write a
+  fixture file) so the full rip flow runs without the network.
+- Server routes are tested against a server instance started on an
+  ephemeral port with a stubbed engine.
 - Manual smoke of the web app: single track, SoundCloud set, cancel
   mid-download, invalid URL, server restart with history present.
 
@@ -152,13 +174,13 @@ reusing the k-ripper brand assets (`kripper/assets/`).
 - Browser-download delivery of files.
 - Format conversion options (WAV/FLAC selector).
 - Electron packaging or a bundled Node runtime.
-- Device installer changes beyond adding `engine.mjs` to the file set.
+- Any change to `kripper/`, `kripper-mac/`, or the device installers.
 
 ## Risks
 
-- **Engine refactor touches the shipped device.** The next device release
-  must include `engine.mjs` in the installer file set and pass the
-  regression check above.
+- **Duplication drift.** `lib.mjs`, the analysis worker, and vendor code
+  now exist in two places; fixes to shared logic must be applied to both
+  folders deliberately. Accepted trade-off for full independence.
 - **System Node dependency** is a new install requirement the device never
   had; mitigated by the launcher's version check and README note.
 - Playlist rips of huge sets are long-running by nature; serial queue +
