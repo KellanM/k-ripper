@@ -94,7 +94,7 @@ open the browser at the actual port.
 | `GET /api/jobs` | Current queue + this-session history (in-memory). |
 | `POST /api/jobs/:id/cancel` | Cancels a queued job (removes it) or the running job (kill-tree, same as device). |
 | `POST /api/reveal` `{id}` | Opens the OS file manager with the finished file selected (`explorer /select,` on Windows, `open -R` on macOS). Only accepts ids of finished jobs — never arbitrary paths. |
-| `GET /api/art/:id` | Serves the job's cover-art JPG. For history rows restored from `localStorage` after a server restart (job id unknown to the server), the UI instead requests `GET /api/art?file=<basename>`, which serves only plain basenames resolved strictly inside the output dir (no traversal); if the file is gone, the row shows a placeholder. |
+| `GET /api/art?file=<basename>` | Serves a cover-art JPG from the output dir. The `art` event carries the JPG's basename, so the same route works for live jobs and for history rows restored from `localStorage` after a server restart. Only plain `.jpg` basenames are accepted (no separators or traversal); if the file is gone, the row shows a placeholder. |
 | `GET /` + static | Serves `kripper-web/public/`. |
 
 ### Queue semantics
