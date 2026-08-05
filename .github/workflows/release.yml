@@ -36,7 +36,7 @@ jobs:
         run: bash scripts/fetch-binaries.sh macos
       - name: Mirror device files into Mac bundle
         run: |
-          cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/lib.mjs \
+          cp kripper/K-Ripper.amxd kripper/kripper.js kripper/kripper.mjs kripper/analysis-worker.mjs kripper/lib.mjs \
              kripper/package.json kripper/LICENSES.txt kripper-mac/
           rm -rf kripper-mac/assets && cp -r kripper/assets kripper-mac/
           rm -rf kripper-mac/vendor && cp -r kripper/vendor kripper-mac/

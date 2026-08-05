@@ -14,4 +14,4 @@ jobs:
         with:
           node-version: "20"
       - name: Unit tests (no network)
-        run: node --test
+        run: npm test

@@ -3,6 +3,6 @@
   "private": true,
   "description": "K-Ripper test suite (Node built-in test runner, no dependencies).",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test test/*.test.mjs"
   }
 }

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-Ripper Web</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="assets/icon_sc_lit.png">
+</head>
+<body>
+<main>
+  <header>
+    <img class="logo" src="assets/bubbles.png" alt="">
+    <h1>K-RIPPER <span>WEB</span></h1>
+    <p class="tag">paste a link · get the original file · highest fidelity</p>
+  </header>
+
+  <form id="rip-form">
+    <input id="url" type="text" placeholder="https://soundcloud.com/… (track, set, or playlist)"
+           autocomplete="off" spellcheck="false" autofocus>
+    <button id="rip-btn" type="submit">RIP</button>
+  </form>
+  <p id="notice" hidden></p>
+
+  <section id="jobs"></section>
+
+  <template id="row-template">
+    <article class="job">
+      <img class="art" src="" alt="" loading="lazy">
+      <div class="meta">
+        <div class="title">…</div>
+        <div class="sub">
+          <span class="status"></span>
+          <span class="badge bpm" hidden></span>
+          <span class="badge key" hidden></span>
+        </div>
+        <progress max="100" value="0"></progress>
+      </div>
+      <div class="actions">
+        <button class="reveal" title="Show in folder" hidden>📂</button>
+        <button class="cancel" title="Cancel">✕</button>
+      </div>
+    </article>
+  </template>
+</main>
+<div id="offline" hidden>server stopped — relaunch K-Ripper Web</div>
+<script src="app.js"></script>
+</body>
+</html>
