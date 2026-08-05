@@ -1,0 +1,48 @@
+* { box-sizing: border-box; margin: 0; }
+body {
+  min-height: 100vh; color: #eef2f5; font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+  background: #0b0f14 url("assets/bg.png") center/cover fixed no-repeat;
+}
+main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+header { text-align: center; margin-bottom: 28px; }
+.logo { width: 72px; opacity: .9; }
+h1 { font-size: 34px; letter-spacing: .18em; margin-top: 8px; }
+h1 span { color: #35e0a1; }
+.tag { color: #8ea0ad; margin-top: 4px; }
+#rip-form { display: flex; gap: 10px; }
+#url {
+  flex: 1; padding: 13px 16px; border-radius: 10px; border: 1px solid #2a3742;
+  background: rgba(10, 16, 22, .85); color: inherit; font-size: 15px;
+}
+#url:focus { outline: none; border-color: #35e0a1; }
+#rip-btn {
+  padding: 13px 28px; border: 0; border-radius: 10px; cursor: pointer;
+  background: #35e0a1; color: #04130c; font-weight: 700; letter-spacing: .08em;
+}
+#rip-btn:disabled { opacity: .5; cursor: wait; }
+#notice { margin-top: 10px; color: #ffb454; }
+#jobs { margin-top: 26px; display: flex; flex-direction: column; gap: 10px; }
+.job {
+  display: flex; gap: 14px; align-items: center; padding: 12px 14px;
+  background: rgba(13, 20, 27, .88); border: 1px solid #1d2933; border-radius: 12px;
+}
+.job .art { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #131c24; }
+.job .meta { flex: 1; min-width: 0; }
+.job .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job .sub { display: flex; gap: 8px; align-items: center; color: #8ea0ad; font-size: 13px; margin: 3px 0 6px; }
+.badge {
+  padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: #14251f; color: #35e0a1; border: 1px solid #1f4436;
+}
+progress { width: 100%; height: 6px; accent-color: #35e0a1; }
+.job.done progress, .job.error progress, .job.cancelled progress { display: none; }
+.job.error .status { color: #ff6b6b; }
+.job.cancelled { opacity: .55; }
+.actions button {
+  border: 0; background: transparent; color: #8ea0ad; cursor: pointer; font-size: 17px; padding: 6px;
+}
+.actions button:hover { color: #eef2f5; }
+#offline {
+  position: fixed; inset: auto 0 0 0; padding: 12px; text-align: center;
+  background: #7a1f1f; color: #ffe3e3; font-weight: 600;
+}
