@@ -65,16 +65,27 @@ export async function enumeratePlaylist(url, { ytdlpPath, ytdlpPreArgs }) {
   return parsePlaylistEntries(stdout);
 }
 
-function runAnalysis(audioPath, ffmpegPath) {
+// `register` (mirrors run()'s child-process register) hands the live worker
+// back to the caller so a cancel that lands mid-analysis can terminate it —
+// otherwise a cancel during this phase would stall the job up to
+// ANALYSIS_TIMEOUT_MS instead of resolving immediately.
+function runAnalysis(audioPath, ffmpegPath, { register } = {}) {
   return new Promise((resolve) => {
     let settled = false, timer = null, worker;
-    const finish = (v) => { if (!settled) { settled = true; clearTimeout(timer); resolve(v); } };
+    const finish = (v) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (register) register(null);
+      resolve(v);
+    };
     try {
       worker = new Worker(new URL("./analysis-worker.mjs", import.meta.url), {
         workerData: { audioPath, ffmpegPath },
         execArgv: [], // never inherit host loaders into the worker
       });
     } catch { return resolve({ bpm: null, keyInfo: null }); }
+    if (register) register(worker);
     timer = setTimeout(() => { try { worker.terminate(); } catch {} finish({ bpm: null, keyInfo: null }); }, ANALYSIS_TIMEOUT_MS);
     worker.on("message", (m) => {
       if (m && m.type === "result") { finish({ bpm: m.bpm ?? null, keyInfo: m.keyInfo ?? null }); try { worker.terminate(); } catch {} }
@@ -91,7 +102,12 @@ export async function rip(url, opts) {
   const stageDir = path.join(stagingRoot, String(jobId));
   let cancelled = false;
   let child = null;
-  setCanceller(() => { cancelled = true; killTree(child); });
+  let worker = null;
+  setCanceller(() => {
+    cancelled = true;
+    killTree(child);
+    if (worker) { try { worker.terminate(); } catch {} }
+  });
 
   try {
     fs.rmSync(stageDir, { recursive: true, force: true });
@@ -135,7 +151,15 @@ export async function rip(url, opts) {
     }
 
     emit("status", "analyzing tempo + key...");
-    const { bpm, keyInfo } = await runAnalysis(finalAudio, ffmpegPath);
+    // A cancel can land in the gap between the status emit above and the
+    // worker actually being registered below; skip spinning one up at all
+    // rather than let it run to completion before the cancelled check.
+    let bpm = null, keyInfo = null;
+    if (!cancelled) {
+      ({ bpm, keyInfo } = await runAnalysis(finalAudio, ffmpegPath, {
+        register: (w) => { worker = w; if (cancelled && w) { try { w.terminate(); } catch {} } },
+      }));
+    }
     if (cancelled) { emit("cancelled"); return; }
     emit("bpm", bpm == null ? "none" : bpm);
     if (keyInfo) emit("key", keyInfo.camelot, keyInfo.label); else emit("key", "none");

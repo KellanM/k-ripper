@@ -54,6 +54,28 @@ test("rip: yt-dlp failure emits a classified error, not a throw", async () => {
   assert.equal(err[1], "unavailable or private"); // classifyError of the 404
 });
 
+test("rip: cancel mid-download resolves 'cancelled', never 'done', and kills the child", async () => {
+  const dir = tmpdir();
+  const ev = [];
+  let canceller = null;
+  const emit = (name, ...args) => {
+    ev.push([name, ...args]);
+    // Cancel as soon as we observe the first sign of life from the child —
+    // deterministic (no fixed sleep), and exercises the real "cancel landed
+    // mid-download" race instead of a cancel-before-spawn no-op.
+    if (name === "progress" && canceller) {
+      const c = canceller; canceller = null; c();
+    }
+  };
+  const setCanceller = (fn) => { canceller = fn; };
+  await rip("https://fake.test/slow-song", { ...fakeOpts(dir), emit, setCanceller });
+  const names = ev.map((e) => e[0]);
+  assert.ok(names.includes("progress"), "saw at least one progress event before cancelling");
+  assert.ok(names.includes("cancelled"), "rip settled by emitting cancelled");
+  assert.ok(!names.includes("done"), "no done event after cancellation");
+  assert.ok(!names.includes("error"), "cancellation is not reported as an error");
+});
+
 test("enumeratePlaylist: parses url/title pairs from the fixture", async () => {
   const entries = await enumeratePlaylist("https://fake.test/sets/x",
     { ytdlpPath: process.execPath, ytdlpPreArgs: [FIXTURE] });
